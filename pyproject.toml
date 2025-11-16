@@ -1,0 +1,11 @@
+[project]
+name = "robocop-mcp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12.11"
+dependencies = [
+    "httpx>=0.28.1",
+    "mcp[cli]>=1.21.1",
+    "robotframework-robocop>=6.10.0",
+]
