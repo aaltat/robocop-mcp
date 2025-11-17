@@ -1,0 +1,1 @@
+Convert test case name to uppercase
