@@ -1,6 +1,6 @@
 # Robocop Report
 
-## Violation for file sample.robot in line 2 rule DOC02
+## Violation for file sample.robot in line 3 rule DOC02
 
 description: Missing documentation in 'this is a test' test case
 start line: 1
@@ -12,6 +12,6 @@ severity: WARNING
 
 ## Proposed fixe for violations
 
-The following fix is proposed: Write documentation based on what the test suite does on high level
+The following fix is proposed: Write documentation for the test case.
 
-and 2 more violations not shown.
+and 4 more violations not shown.
