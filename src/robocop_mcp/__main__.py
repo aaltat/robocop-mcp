@@ -16,12 +16,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import click
-
-from server import main
+from server import main  # type: ignore
 
 
 @click.command()
-def server():
+def server() -> None:
     main()
 
 

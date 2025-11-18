@@ -1,17 +1,12 @@
-import os
-import sys
-
 import pytest
 from approvaltests.approvals import verify
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
-
-from robocop_mcp.server import (
+from src.robocop_mcp.server import (
     Config,
     Violation,
-    get_config,
+    _get_config,
     get_robocop_report,
-    run_robocop,
+    _run_robocop,
 )
 
 
@@ -27,6 +22,8 @@ TOML_FILE_RULE_AS_FILE = """
 [tool.robocop_mcp]
 DOC02 = REPLACE_ME
 violation_count = 5
+rule_priority = ["DOC02"]
+
 [tool.robocop]
 language = ["en"]
 
@@ -35,14 +32,23 @@ language = ["en"]
 TEST_1 = """
 *** Test Cases ***
 this is a test
-    Log    Hello, World!
-"""
+    Log    Hello, World!"""
 
 TEST_2 = """
 *** Test Cases ***
 Example Test 1
     Log    Hello, World!
 Example Test 2
+    Log    Hello, World!"""
+
+TEST_NO_ERRORS = """\
+*** Settings ***
+Documentation     Sample test file for robocop-mcp tests
+
+
+*** Test Cases ***
+This is a test
+    [Documentation]    This is a test case
     Log    Hello, World!
 """
 
@@ -66,14 +72,12 @@ async def test_get_robocop_report_with_sample_file(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_robocop_report_with_sample_file_and_rule_as_file(
-    tmp_path, monkeypatch
-):
+async def test_get_robocop_report_with_sample_file_and_rule_as_file(tmp_path, monkeypatch):
     toml_file = tmp_path / "pyproject.toml"
     rule_folder = tmp_path / "rules"
     rule_folder.mkdir(parents=True)
     rule_file = rule_folder / "DOC02.md"
-    rule_file.write_text(TEST_1)
+    rule_file.write_text("Write documentation for the test case.")
     rule_file_as_str = str(rule_file)
     rule_file_as_str = rule_file_as_str.replace("\\", "/")
     toml_file_text = TOML_FILE_RULE_AS_FILE
@@ -114,9 +118,43 @@ async def test_get_robocop_report_with_rule_priority(tmp_path, monkeypatch):
     assert "sample.robot" in line
 
 
+@pytest.mark.asyncio
+async def test_get_robocop_report_with_rule_priority_not_found(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    toml_text = TOML_FILE
+    toml_text = toml_text.splitlines()
+    toml_text.append('rule_priority = ["INVALID9876123"]')
+    toml_file.write_text("\n".join(toml_text))
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+    file_line = [line for line in result.splitlines() if line.startswith("file")]
+    assert len(file_line) == 1
+    line = file_line[0]
+    assert "file: " in line
+    assert "sample.robot" in line
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_no_violations(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    toml_file.write_text(TOML_FILE)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_NO_ERRORS)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+
+
 def test_get_config_default(monkeypatch):
     monkeypatch.delenv("ROBOCOPMCP_CONFIG_FILE", raising=False)
-    config = get_config()
+    config = _get_config()
     assert isinstance(config, Config)
     assert config.robocopmcp_config_file is None
     assert isinstance(config.rules, list)
@@ -125,11 +163,9 @@ def test_get_config_default(monkeypatch):
 
 def test_get_config_with_toml(tmp_path, monkeypatch):
     toml_file = tmp_path / "pyproject.toml"
-    toml_file.write_text(
-        '[tool.robocop_mcp]\nDOC02 = "Missing documentation"\nviolation_count = 5\n'
-    )
+    toml_file.write_text('[tool.robocop_mcp]\nDOC02 = "Missing documentation"\nviolation_count = 5\n')
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
-    config = get_config()
+    config = _get_config()
     assert config.robocopmcp_config_file == toml_file.resolve()
     assert config.violation_count == 5
     assert any(rule.rule_id == "DOC02" for rule in config.rules)
@@ -142,7 +178,7 @@ async def test_run_robocop_with_sample_file(tmp_path, monkeypatch):
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
     robot_file = tmp_path / "sample.robot"
     robot_file.write_text(TEST_2)
-    result = await run_robocop(str(robot_file))
+    result = await _run_robocop(str(robot_file))
     assert isinstance(result, list)
     assert all(isinstance(v, Violation) for v in result)
     # Optionally check fields of the first violation

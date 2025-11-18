@@ -17,21 +17,19 @@
 
 import logging
 import os
-import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
+import tomllib
 from mcp.server.fastmcp import FastMCP
-from robocop import config as robocop_config
-from robocop.linter.diagnostics import Diagnostic
-from robocop.linter.rules import RuleFilter, filter_rules_by_category
-from robocop.linter.runner import RobocopLinter
-from robocop.run import check_files
+from robocop import config as robocop_config  # type: ignore
+from robocop.linter.diagnostics import Diagnostic  # type: ignore
+from robocop.linter.rules import RuleFilter, filter_rules_by_category  # type: ignore
+from robocop.linter.runner import RobocopLinter  # type: ignore
+from robocop.run import check_files  # type: ignore
 
 mcp = FastMCP("op-robocop-mcp")
-logging.basicConfig(
-    format="%(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p", level=logging.INFO
-)
+logging.basicConfig(format="%(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p", level=logging.INFO)
 logger = logging.getLogger("robocop-mcp")
 
 
@@ -96,42 +94,40 @@ def get_robocop_rules() -> list[Rule]:
 ROBOCOP_RULES = get_robocop_rules()
 
 
-def is_robocop_rule(robocop_rules: list[Rule], rule: str) -> bool:
-    return any(
-        robocop_rule.rule_id.lower() == rule.lower() for robocop_rule in robocop_rules
-    )
+def _is_robocop_rule(robocop_rules: list[Rule], rule: str) -> bool:
+    return any(robocop_rule.rule_id.lower() == rule.lower() for robocop_rule in robocop_rules)
 
 
-def rule_is_set(rule: Rule, current_rules: list[Rule]) -> bool:
+def _rule_is_set(rule: Rule, current_rules: list[Rule]) -> bool:
     return any(rule.rule_id == current_rule.rule_id for current_rule in current_rules)
 
 
-def get_rule_fixes(robocop_rule: list[Rule], config: dict) -> list[Rule]:
-    rules = []
+def _get_rule_fixes(robocop_rule: list[Rule], config: dict) -> list[Rule]:
+    rules: list[Rule] = []
     if not config:
         return rules
     for key, value in config.items():
-        if is_robocop_rule(robocop_rule, key):
+        if _is_robocop_rule(robocop_rule, key):
             rules.append(Rule(key, value))
     return rules
 
 
 def append_robocop_rules(rules: list[Rule], robocop_rules: list[Rule]) -> list[Rule]:
-    all_rules = []
+    all_rules: list[Rule] = []
     for rule in rules + robocop_rules:
-        if rule_is_set(rule, all_rules):
+        if _rule_is_set(rule, all_rules):
             continue
         all_rules.append(rule)
     return all_rules
 
 
-def get_config() -> Config:
+def _get_config() -> Config:
     pyproject_toml_env = os.environ.get("ROBOCOPMCP_CONFIG_FILE")
     pyproject_toml = Path(pyproject_toml_env).resolve() if pyproject_toml_env else None
     if pyproject_toml:
         with pyproject_toml.open("r+b") as file:
             data = tomllib.load(file)
-        rules = get_rule_fixes(ROBOCOP_RULES, data["tool"]["robocop_mcp"])
+        rules = _get_rule_fixes(ROBOCOP_RULES, data["tool"]["robocop_mcp"])
         rules = append_robocop_rules(rules, ROBOCOP_RULES)
         count = data["tool"]["robocop_mcp"].get("violation_count", 20)
         rule_priority = data["tool"]["robocop_mcp"].get("rule_priority", [])
@@ -142,7 +138,7 @@ def get_config() -> Config:
     return Config(pyproject_toml, rules, count, rule_priority)
 
 
-def convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
+def _convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
     logger.info("Convert to violations")
     return [
         Violation(
@@ -159,39 +155,44 @@ def convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
     ]
 
 
-async def run_robocop(path: str) -> list[Violation]:
+async def _run_robocop(path: str) -> list[Violation]:
     sources = [Path(path)]
     kwargs = {"sources": sources, "return_result": True}
-    config = get_config()
+    config = _get_config()
     if config.robocopmcp_config_file is not None:
         kwargs["configuration_file"] = config.robocopmcp_config_file
     result = check_files(**kwargs)
     if result is None:
         return []
-    return convert_to_violations(result)
+    return _convert_to_violations(result)
 
 
-def resolve_path(path: str | None) -> str:
+def _resolve_path(path: str | None) -> str:
     if path is None:
-        return str(Path("."))
+        return str(Path())
     return str(Path(path))
 
 
-def get_first_violation(violations: list[Violation], config: Config) -> Violation:
-    if not config.rule_priority:
+def _get_first_violation(violations: list[Violation], config: Config) -> Violation | None:
+    if not config.rule_priority and violations:
         logger.info("No rule priority defined, return first violation.")
         return violations[0]
     for violation in violations:
         if violation.rule_id in config.rule_priority:
             return violation
     logger.info("No rule priority found, return first violation.")
-    return violations[0]
+    if violations:
+        return violations[0]
+    return None
 
 
-def filter_violations(violations: list[Violation]) -> list[Violation]:
-    config = get_config()
-    filtered_violations = []
-    first_violation = get_first_violation(violations, config)
+def _filter_violations(violations: list[Violation]) -> list[Violation]:
+    config = _get_config()
+    filtered_violations: list[Violation] = []
+    first_violation = _get_first_violation(violations, config)
+    if first_violation is None:
+        logger.info("No violations found to filter.")
+        return filtered_violations
     for violation in violations:
         if len(filtered_violations) >= config.violation_count:
             break
@@ -200,11 +201,8 @@ def filter_violations(violations: list[Violation]) -> list[Violation]:
     return filtered_violations
 
 
-def format_report(violation: Violation) -> list[str]:
-    heading = (
-        f"## Violation for file {violation.file.name} in line {violation.start_line} "
-        f"rule {violation.rule_id}"
-    )
+def _format_report(violation: Violation) -> list[str]:
+    heading = f"## Violation for file {violation.file.name} in line {violation.start_line} rule {violation.rule_id}"
     return [
         heading,
         "",
@@ -219,7 +217,7 @@ def format_report(violation: Violation) -> list[str]:
     ]
 
 
-def get_violation_fix(violation: Violation, config: Config) -> str:
+def _get_violation_fix(violation: Violation, config: Config) -> str:
     for rule in config.rules:
         if rule.rule_id == violation.rule_id:
             rule_instruction = rule.instruction
@@ -232,11 +230,13 @@ def get_violation_fix(violation: Violation, config: Config) -> str:
 
 @mcp.tool()
 async def get_robocop_report(path: str | None) -> str:
-    """Run RoboCop on the provided source code and return the report.
+    """
+    Run RoboCop on the provided source code and return the report.
 
     Args:
         path (str | None): The path to folder or a file to analyze. If None, uses the
         current directory for analysis.
+
     Returns:
         str: The Robocop report in markdown format.
 
@@ -266,44 +266,47 @@ async def get_robocop_report(path: str | None) -> str:
     severity: WARNING
 
     All violations reported.
+
     """
-    path_resolved = resolve_path(path)
-    logger.info(f"Running Robocop on path: {path_resolved}")
-    report = await run_robocop(path_resolved)
-    filter_report = filter_violations(report)
+    path_resolved = _resolve_path(path)
+    logger.info("Running Robocop on path: '%s'", path_resolved)
+    report = await _run_robocop(path_resolved)
+    filter_report = _filter_violations(report)
+    if not filter_report:
+        logger.info("No violations found.")
+        return "# Robocop Report\n\nNo violations found."
     logger.info("Dump to markdown...")
     markdown_lines = ["# Robocop Report", ""]
     for item in filter_report:
-        markdown_lines.extend(format_report(item))
+        markdown_lines.extend(_format_report(item))
 
     first_violation = filter_report[0] if filter_report else None
     if not first_violation:
         markdown_lines.append("No violations found.")
         return "\n".join(markdown_lines)
-    config = get_config()
-    proposed_fix = get_violation_fix(first_violation, config)
+    config = _get_config()
+    proposed_fix = _get_violation_fix(first_violation, config)
     markdown_lines.extend(
         [
             "",
             "## Proposed fixe for violations",
             "",
             f"The following fix is proposed: {proposed_fix}",
-        ]
+        ],
     )
     if len(filter_report) < len(report):
-        markdown_lines.append(
-            f"\nand {len(report) - len(filter_report)} more violations not shown."
-        )
+        markdown_lines.append(f"\nand {len(report) - len(filter_report)} more violations not shown.")
     else:
         markdown_lines.append("\nAll violations reported.")
     return "\n".join(markdown_lines)
 
 
-def main():
+def main() -> None:
+    "Main to run the robocop-mcp server."
     logger.info("Starting OP Robocop MCP...")
-    config = get_config()
+    config = _get_config()
     if config.robocopmcp_config_file:
-        logger.info(f"With {config.robocopmcp_config_file} file.")
+        logger.info("With %s file.", config.robocopmcp_config_file)
     mcp.run(transport="stdio")
 
 
