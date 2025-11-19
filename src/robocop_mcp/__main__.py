@@ -15,14 +15,13 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import click
-from server import main  # type: ignore
+
+from .server import main as server_main
 
 
-@click.command()
-def server() -> None:
-    main()
+def main() -> None:
+    server_main()
 
 
 if __name__ == "__main__":
-    server()
+    main()

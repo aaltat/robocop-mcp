@@ -1,0 +1,59 @@
+name: release
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    concurrency: release
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Setup Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.14
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install uv
+          uv sync --locked --all-extras --dev
+      - name: Lint code
+        run: |
+          uv run inv lint
+      - name: Run tests
+        run: |
+          uv run inv utest
+      - name: Upload coverage
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-report-${{ matrix.python-version }}
+          path: htmlcov/
+      - name: Python Semantic Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v10.5.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        run: |
+          uv version ${{ steps.release.outputs.version }}
+          uv run inv version ${{ steps.release.outputs.version }}
+          uv build
+          ls -l dist/
+          uv publish
+        if: steps.release.outputs.released == 'true'
+      - uses: EndBug/add-and-commit@v9
+        name: Save version
+        with:
+          add: "['pyproject.toml', 'uv.lock', 'src/robocop_mcp/__init__.py']"
+          author_name: Robocop MCP
+          author_email: robocop@mcp
+          message: "Update version information to ${{ steps.release.outputs.version }}"
