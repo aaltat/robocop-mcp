@@ -52,6 +52,7 @@ jobs:
         if: steps.release.outputs.released == 'true'
       - uses: EndBug/add-and-commit@v9
         name: Save version
+        if: steps.release.outputs.released == 'true'
         with:
           add: "['pyproject.toml', 'uv.lock', 'src/robocop_mcp/__init__.py']"
           author_name: Robocop MCP
