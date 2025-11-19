@@ -20,7 +20,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-import tomllib
+import tomli  # tomli is for Python versions < 3.11 move to tomllib when 3.11+ is minimum
 from mcp.server.fastmcp import FastMCP
 from robocop import config as robocop_config  # type: ignore
 from robocop.linter.diagnostics import Diagnostic  # type: ignore
@@ -126,7 +126,7 @@ def _get_config() -> Config:
     pyproject_toml = Path(pyproject_toml_env).resolve() if pyproject_toml_env else None
     if pyproject_toml:
         with pyproject_toml.open("r+b") as file:
-            data = tomllib.load(file)
+            data = tomli.load(file)
         rules = _get_rule_fixes(ROBOCOP_RULES, data["tool"]["robocop_mcp"])
         rules = append_robocop_rules(rules, ROBOCOP_RULES)
         count = data["tool"]["robocop_mcp"].get("violation_count", 20)
@@ -202,7 +202,9 @@ def _filter_violations(violations: list[Violation]) -> list[Violation]:
 
 
 def _format_report(violation: Violation) -> list[str]:
-    heading = f"## Violation for file {violation.file.name} in line {violation.start_line} rule {violation.rule_id}"
+    heading = (
+        f"## Violation for file {violation.file.name} in line {violation.start_line} rule {violation.rule_id}"
+    )
     return [
         heading,
         "",
