@@ -127,10 +127,11 @@ def _get_config() -> Config:
     if pyproject_toml:
         with pyproject_toml.open("r+b") as file:
             data = tomli.load(file)
-        rules = _get_rule_fixes(ROBOCOP_RULES, data["tool"]["robocop_mcp"])
+        robocop_mcp = data["tool"].get("robocop_mcp", {})
+        rules = _get_rule_fixes(ROBOCOP_RULES, robocop_mcp)
         rules = append_robocop_rules(rules, ROBOCOP_RULES)
-        count = data["tool"]["robocop_mcp"].get("violation_count", 20)
-        rule_priority = data["tool"]["robocop_mcp"].get("rule_priority", [])
+        count = robocop_mcp.get("violation_count", 20)
+        rule_priority = robocop_mcp.get("rule_priority", [])
     else:
         rules = ROBOCOP_RULES
         count = 20
