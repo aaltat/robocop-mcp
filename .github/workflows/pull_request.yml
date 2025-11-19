@@ -36,3 +36,12 @@ jobs:
 
       - name: Lint code
         run: uv run inv lint
+
+      - name: Run tests
+        run: uv run inv utest
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-report-${{ matrix.python-version }}
+          path: htmlcov/
