@@ -158,7 +158,7 @@ def _convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
 
 async def _run_robocop(path: str) -> list[Violation]:
     sources = [Path(path)]
-    kwargs = {"sources": sources, "return_result": True}
+    kwargs = {"sources": sources, "return_result": True, "silent": True}
     config = _get_config()
     if config.robocopmcp_config_file is not None:
         kwargs["configuration_file"] = config.robocopmcp_config_file
