@@ -37,3 +37,5 @@ see the VS Code
 [documentation](https://code.visualstudio.com/docs/copilot/customization/mcp-servers#_configuration-format)
 
 # Using robocop-mcp
+
+https://github.com/user-attachments/assets/f446f31f-a91e-4cc1-bae0-6b691469dfba
