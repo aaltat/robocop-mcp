@@ -57,6 +57,7 @@ class Config:
     rules: list[Rule]
     violation_count: int
     rule_priority: list[str]
+    rule_ignore: list[str]
     robocop_configured: bool = False
 
 
@@ -168,13 +169,15 @@ def _get_config() -> Config:
         count = _get_violation_count(robocop_mcp, pyproject_toml)
         rule_priority = _get_rule_priority(robocop_mcp, pyproject_toml)
         robocop_configured = _robocop_configured_in_toml(data, pyproject_toml)
+        ignore = robocop_mcp.get("ignore", [])
     else:
         logger.info("No pyproject.toml file found, using default configuration.")
         rules = ROBOCOP_RULES
         count = 20
         rule_priority = []
         robocop_configured = False
-    return Config(pyproject_toml, rules, count, rule_priority, robocop_configured)
+        ignore = []
+    return Config(pyproject_toml, rules, count, rule_priority, ignore, robocop_configured)
 
 
 def _convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
@@ -213,13 +216,14 @@ def _resolve_path(path: str | None) -> str:
 
 
 def _get_first_violation(violations: list[Violation], config: Config) -> Violation | None:
-    if not config.rule_priority and violations:
-        logger.info("No rule priority defined, return first violation.")
-        return violations[0]
     for violation in violations:
         if violation.rule_id in config.rule_priority:
             return violation
-    logger.info("No rule priority found, return first violation.")
+    logger.info("No prioritized rule violation found.")
+    for violation in violations:
+        if violation.rule_id not in config.rule_ignore:
+            return violation
+    logger.info("No rule priority or ignore violations found, return first violation.")
     if violations:
         return violations[0]
     return None

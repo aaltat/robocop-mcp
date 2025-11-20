@@ -40,6 +40,12 @@ violation_count = 5
 rule_priority = ["DOC02"]
 
 """
+TOML_FILE_IGNORE = """
+[tool.robocop_mcp]
+ignore = ["DOC02", "DOC03", "COM04"]
+rule_priority = ["ARG01"]
+
+"""
 
 TEST_1 = """
 *** Test Cases ***
@@ -220,6 +226,19 @@ async def test_get_robocop_report_invalid_config(tmp_path, monkeypatch):
     result = await get_robocop_report(str(robot_file))
     assert "file: " in result
     assert "sample.robot" in result
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_ignore(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    toml_file.write_text(TOML_FILE_IGNORE)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
 
 
 def test_get_config_default(monkeypatch):
