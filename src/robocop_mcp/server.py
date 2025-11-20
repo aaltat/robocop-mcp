@@ -228,11 +228,13 @@ def _format_report(violation: Violation) -> list[str]:
         f"severity: {violation.severity}",
     ]
 
+
 def _is_file(path: str) -> bool:
     try:
         return Path(path).is_file()
     except OSError:
         return False
+
 
 def _get_violation_fix(violation: Violation, config: Config) -> str:
     for rule in config.rules:

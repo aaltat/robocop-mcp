@@ -165,7 +165,7 @@ async def test_get_robocop_report_no_violations(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_robocop_report_no_robocop_config(tmp_path, monkeypatch):
+async def test_get_robocop_report_no_config(tmp_path, monkeypatch):
     toml_file = tmp_path / "pyproject.toml"
     toml_file.write_text(TOML_FILE_NO_CONFIG)
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
@@ -178,7 +178,7 @@ async def test_get_robocop_report_no_robocop_config(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_robocop_report_no_config(tmp_path, monkeypatch):
+async def test_get_robocop_report_no_config_file(tmp_path, monkeypatch):
     toml_file = tmp_path / "nothere.toml"
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
     robot_file = tmp_path / "sample.robot"
