@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.0 (2025-11-20)
+
+### Features
+
+- Add ignore list
+  ([`86f8da3`](https://github.com/aaltat/robocop-mcp/commit/86f8da3d209afc9f7de2e7ca80169f75a48ca8af))
+
+
 ## v1.1.2 (2025-11-20)
 
 ### Bug Fixes
