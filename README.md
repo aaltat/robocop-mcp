@@ -127,3 +127,18 @@ should have:
 [tool.robocop_mcp]
 ARG01 = "my_rules/ARG01.md"
 ```
+## Ignore rules
+The recommended way to ignore rules is to ignore rules in the
+robocop tools section in the `pyproject.toml`. In that case
+rules are ignored by Robocop and ignored rules are not visible for the
+robocop-mcp serve either.
+
+If there is need to ignore rules only for robocop-mcp, then add
+`ignore` (list) setting to the `pyproject.toml` file. Example if there is a
+need to ignore `DOC02`, `DOC03` and `COM04` rules, then `pyproject.toml`
+should have:
+
+```toml
+[tool.robocop_mcp]
+ignore = ["DOC02", "DOC03", "COM04"]
+````

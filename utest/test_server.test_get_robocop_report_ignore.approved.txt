@@ -1,0 +1,30 @@
+# Robocop Report
+
+## Violation for file sample.robot in line 3 rule NAME07
+
+description: Test case 'this is a test' title does not start with capital letter
+start line: 1
+end line: 15
+start column: 1
+end column: 15
+rule id: NAME07
+severity: WARNING
+
+## Proposed fixe for violations
+
+The following fix is proposed: 
+Test case title does not start with capital letter.
+
+Incorrect code example:
+
+    *** Test Cases ***
+    validate user details
+
+Correct code example:
+
+    *** Test Cases ***
+    Validate user details
+
+
+
+and 4 more violations not shown.
