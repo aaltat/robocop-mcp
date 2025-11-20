@@ -57,6 +57,7 @@ class Config:
     rules: list[Rule]
     violation_count: int
     rule_priority: list[str]
+    robocop_configured: bool = False
 
 
 def get_robocop_rules() -> list[Rule]:
@@ -112,7 +113,7 @@ def _get_rule_fixes(robocop_rule: list[Rule], config: dict) -> list[Rule]:
     return rules
 
 
-def append_robocop_rules(rules: list[Rule], robocop_rules: list[Rule]) -> list[Rule]:
+def _append_robocop_rules(rules: list[Rule], robocop_rules: list[Rule]) -> list[Rule]:
     all_rules: list[Rule] = []
     for rule in rules + robocop_rules:
         if _rule_is_set(rule, all_rules):
@@ -124,19 +125,27 @@ def append_robocop_rules(rules: list[Rule], robocop_rules: list[Rule]) -> list[R
 def _get_config() -> Config:
     pyproject_toml_env = os.environ.get("ROBOCOPMCP_CONFIG_FILE")
     pyproject_toml = Path(pyproject_toml_env).resolve() if pyproject_toml_env else None
-    if pyproject_toml:
+    if pyproject_toml and pyproject_toml.is_file():
         with pyproject_toml.open("r+b") as file:
             data = tomli.load(file)
         robocop_mcp = data["tool"].get("robocop_mcp", {})
         rules = _get_rule_fixes(ROBOCOP_RULES, robocop_mcp)
-        rules = append_robocop_rules(rules, ROBOCOP_RULES)
+        rules = _append_robocop_rules(rules, ROBOCOP_RULES)
         count = robocop_mcp.get("violation_count", 20)
         rule_priority = robocop_mcp.get("rule_priority", [])
+        if "tool" in data and "robocop" in data["tool"]:
+            logger.info("RoboCop configuration found in %s", pyproject_toml)
+            robocop_configured = True
+        else:
+            logger.info("No RoboCop configuration found in %s", pyproject_toml)
+            robocop_configured = False
     else:
+        logger.info("No pyproject.toml file found, using default configuration.")
         rules = ROBOCOP_RULES
         count = 20
         rule_priority = []
-    return Config(pyproject_toml, rules, count, rule_priority)
+        robocop_configured = False
+    return Config(pyproject_toml, rules, count, rule_priority, robocop_configured)
 
 
 def _convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
@@ -160,7 +169,7 @@ async def _run_robocop(path: str) -> list[Violation]:
     sources = [Path(path)]
     kwargs = {"sources": sources, "return_result": True, "silent": True}
     config = _get_config()
-    if config.robocopmcp_config_file is not None:
+    if config.robocop_configured:
         kwargs["configuration_file"] = config.robocopmcp_config_file
     result = check_files(**kwargs)
     if result is None:
