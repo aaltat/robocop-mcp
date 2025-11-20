@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.1.2 (2025-11-20)
+
+### Bug Fixes
+
+- Hanle invalid config
+  ([`81c0757`](https://github.com/aaltat/robocop-mcp/commit/81c075737c051a64fb8ff18ffe8aef213d2736e2))
+
+
 ## v1.1.1 (2025-11-20)
 
 ### Bug Fixes
