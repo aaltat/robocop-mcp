@@ -123,7 +123,7 @@ is defined as key in toml file and value must point to a text file.
 Example if there need to define custom fix for `ARG01`, create
 `ARG01.md` file, example in a `my_rules` folder. Then `pyproject.toml`
 should have:
-```json
+```toml
 [tool.robocop_mcp]
 ARG01 = "my_rules/ARG01.md"
 ```
