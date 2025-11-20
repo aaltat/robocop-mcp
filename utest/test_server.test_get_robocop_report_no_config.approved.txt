@@ -1,0 +1,40 @@
+# Robocop Report
+
+## Violation for file sample.robot in line 1 rule COM04
+
+description: Ignored data found in file
+start line: 1
+end line: 1
+start column: 1
+end column: 1
+rule id: COM04
+severity: WARNING
+
+## Proposed fixe for violations
+
+The following fix is proposed: 
+Ignored data found in file.
+
+All lines before first test data section
+(`ref <https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#test-data-sections>`_)
+are ignored. It's recommended to add ``*** Comments ***`` section header for lines that should be ignored.
+
+Missing section header:
+
+    Resource   file.resource  # it looks like *** Settings *** but section header is missing - line is ignored
+
+    *** Keywords ***
+    Keyword Name
+       No Operation
+
+Comment lines that should be inside ``*** Comments ***``:
+
+    Deprecated Test
+        Keyword
+        Keyword 2
+
+    *** Test Cases ***
+
+
+
+and 4 more violations not shown.

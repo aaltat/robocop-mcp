@@ -29,6 +29,11 @@ language = ["en"]
 
 """
 
+TOML_FILE_NO_CONFIG = """
+[tool.other_tool]
+foo = "bar"
+"""
+
 TEST_1 = """
 *** Test Cases ***
 this is a test
@@ -146,6 +151,31 @@ async def test_get_robocop_report_no_violations(tmp_path, monkeypatch):
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
     robot_file = tmp_path / "sample.robot"
     robot_file.write_text(TEST_NO_ERRORS)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_no_robocop_config(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    toml_file.write_text(TOML_FILE_NO_CONFIG)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_no_config(tmp_path, monkeypatch):
+    toml_file = tmp_path / "nothere.toml"
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
     result = await get_robocop_report(str(robot_file))
     lines = [line for line in result.splitlines() if not line.startswith("file")]
     lines_filtered = "\n".join(lines)
