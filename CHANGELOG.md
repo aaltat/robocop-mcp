@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.1.1 (2025-11-20)
+
+### Bug Fixes
+
+- Better toml file handling
+  ([`c83bac9`](https://github.com/aaltat/robocop-mcp/commit/c83bac92a812bd4545435b0c63902d531876e95e))
+
+- Handle situation when rule violation fix is not file
+  ([`92ea769`](https://github.com/aaltat/robocop-mcp/commit/92ea7692a9fe623b24f01dd7140404666f3ed874))
+
+### Build System
+
+- **deps**: Bump tomli from 2.2.1 to 2.3.0
+  ([`5fa5a9d`](https://github.com/aaltat/robocop-mcp/commit/5fa5a9d610ae5cffeb3cad80ce0fa08d30337d1b))
+
+### Chores
+
+- Lint fixes
+  ([`3ee114a`](https://github.com/aaltat/robocop-mcp/commit/3ee114a92750357e60cb9223761eb41a8b610d93))
+
+
 ## v1.1.0 (2025-11-19)
 
 ### Bug Fixes
