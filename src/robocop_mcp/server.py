@@ -122,6 +122,40 @@ def _append_robocop_rules(rules: list[Rule], robocop_rules: list[Rule]) -> list[
     return all_rules
 
 
+def _get_violation_count(config: dict, pyproject_toml: Path) -> int:
+    count = config.get("violation_count", 20)
+    if isinstance(count, str):
+        logger.info("violation_count in %s is string, converting to int", pyproject_toml)
+        try:
+            count = int(count)
+        except ValueError:
+            logger.warning(
+                "Invalid violation_count value '%s' in %s, using default 20",
+                count,
+                pyproject_toml,
+            )
+            count = 20
+    return count
+
+
+def _get_rule_priority(config: dict, pyproject_toml: Path) -> list[str]:
+    rule_priority = config.get("rule_priority", [])
+    if isinstance(rule_priority, str):
+        logger.info("rule_priority in %s is string, converting to list", pyproject_toml)
+        rule_priority = [rule_priority]
+    return rule_priority
+
+
+def _robocop_configured_in_toml(data: dict, pyproject_toml: Path) -> bool:
+    if "tool" in data and "robocop" in data["tool"]:
+        logger.info("RoboCop configuration found in %s", pyproject_toml)
+        robocop_configured = True
+    else:
+        logger.info("No RoboCop configuration found in %s", pyproject_toml)
+        robocop_configured = False
+    return robocop_configured
+
+
 def _get_config() -> Config:
     pyproject_toml_env = os.environ.get("ROBOCOPMCP_CONFIG_FILE")
     pyproject_toml = Path(pyproject_toml_env).resolve() if pyproject_toml_env else None
@@ -131,14 +165,9 @@ def _get_config() -> Config:
         robocop_mcp = data["tool"].get("robocop_mcp", {})
         rules = _get_rule_fixes(ROBOCOP_RULES, robocop_mcp)
         rules = _append_robocop_rules(rules, ROBOCOP_RULES)
-        count = robocop_mcp.get("violation_count", 20)
-        rule_priority = robocop_mcp.get("rule_priority", [])
-        if "tool" in data and "robocop" in data["tool"]:
-            logger.info("RoboCop configuration found in %s", pyproject_toml)
-            robocop_configured = True
-        else:
-            logger.info("No RoboCop configuration found in %s", pyproject_toml)
-            robocop_configured = False
+        count = _get_violation_count(robocop_mcp, pyproject_toml)
+        rule_priority = _get_rule_priority(robocop_mcp, pyproject_toml)
+        robocop_configured = _robocop_configured_in_toml(data, pyproject_toml)
     else:
         logger.info("No pyproject.toml file found, using default configuration.")
         rules = ROBOCOP_RULES
