@@ -110,3 +110,20 @@ LLM model being used, how verbose the proposed fix is and how long the
 LLM model context have been in use. It is hard to give good guidance on
 this subject, because LLM models change at fast pace and there are some
 many different models available.
+
+## Custom fix proposals
+Each rule violation contains robocop default rule documentation how
+the problem can be addressed. In some cases, this may lead to LLM to wrong
+solution or you want to apply custom way to fix the specific rule.
+Custom solution can be defined in text file (markdown is recommended,
+because it is easy for LLM to understand.) and defining custom rule
+files in the `pyproject.toml`. Each rule where custom fix is defined
+is defined as key in toml file and value must point to a text file.
+
+Example if there need to define custom fix for `ARG01`, create
+`ARG01.md` file, example in a `my_rules` folder. Then `pyproject.toml`
+should have:
+```json
+[tool.robocop_mcp]
+ARG01 = "my_rules/ARG01.md"
+```
