@@ -201,6 +201,27 @@ async def test_get_robocop_report_no_robocop_config(tmp_path, monkeypatch):
     assert "sample.robot" in result
 
 
+@pytest.mark.asyncio
+async def test_get_robocop_report_invalid_config(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    config = TOML_FILE_NO_ROBOCOP
+    config = config.replace("violation_count = 5", 'violation_count = "invalid_value"')
+    toml_file.write_text(config)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    assert "file: " in result
+    assert "sample.robot" in result
+
+    config = TOML_FILE_NO_ROBOCOP
+    config = config.replace('rule_priority = ["DOC02"]', 'rule_priority = "DOC02"')
+    toml_file.write_text(config)
+    result = await get_robocop_report(str(robot_file))
+    assert "file: " in result
+    assert "sample.robot" in result
+
+
 def test_get_config_default(monkeypatch):
     monkeypatch.delenv("ROBOCOPMCP_CONFIG_FILE", raising=False)
     config = _get_config()
