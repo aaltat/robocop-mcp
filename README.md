@@ -46,6 +46,24 @@ The robocop-mcp server can configured by using
 [pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 file. The robocop-mcp server uses `[tool.robocop_mcp]` section in the toml file.
 
+To robocop-mcp server see the the toml file, a ROBOCOPMCP_CONFIG_FILE environment
+variable must be set. Example in the `mcp.json` file:
+```json
+{
+    "servers": {
+        "robocop-mcp":{
+            "type": "stdio",
+            "command": "python",
+            "args": [
+                "-m",
+                "robocop_mcp",
+            ],
+            "env": {"ROBOCOPMCP_CONFIG_FILE": "${workspaceFolder}/pyproject.toml"},
+        }
+    }
+}
+```
+
 ## Priority of Robocop rules
 Some rules are more important to fix than others or perhaps you want to use
 certain type of LLM to solve certain type of rule violations. In this case
@@ -72,7 +90,8 @@ rule_priority = [
 ```
 
 If `rule_priority` is not defined, robocop-mcp will select take first rule
-returned by `robocop` and use it to find similar rule violations.
+returned by `robocop` and use it to find similar rule violations. If no
+rules match to `rule_priority` list, first rule returned by Robocop is used.
 
 ## Maximum amount violations returned
 To not to clutter the LLM context with all the rule violations found from
@@ -91,4 +110,3 @@ LLM model being used, how verbose the proposed fix is and how long the
 LLM model context have been in use. It is hard to give good guidance on
 this subject, because LLM models change at fast pace and there are some
 many different models available.
-
