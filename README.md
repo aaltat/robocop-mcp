@@ -39,3 +39,56 @@ see the VS Code
 # Using robocop-mcp
 
 https://github.com/user-attachments/assets/f446f31f-a91e-4cc1-bae0-6b691469dfba
+
+# Configuration
+
+The robocop-mcp server can configured by using
+[pyproject.toml](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
+file. The robocop-mcp server uses `[tool.robocop_mcp]` section in the toml file.
+
+## Priority of Robocop rules
+Some rules are more important to fix than others or perhaps you want to use
+certain type of LLM to solve certain type of rule violations. In this case
+you can use `rule_priority` (list) to define which rule are first selected by the
+robocop-mcp and given to the LLM model. The `rule_priority` is a list of
+robocop rule id's. You can list all the rules with command:
+```shell
+> robocop list rules
+````
+And if one one rules looks like this:
+```shell
+Rule - ARG01 [W]: unused-argument: Keyword argument '{name}' is not used (enabled)
+```
+Then rule id is the `ARG01`.
+
+And example if user wants to prioritize the `ARG01` and `ARG02` to be fixed first, then `rule_priority` would look like this.
+
+```toml
+[tool.robocop_mcp]
+rule_priority = [
+    "ARG01",
+    "ARG02"
+]
+```
+
+If `rule_priority` is not defined, robocop-mcp will select take first rule
+returned by `robocop` and use it to find similar rule violations.
+
+## Maximum amount violations returned
+To not to clutter the LLM context with all the rule violations found from
+the test data, by default robocop-mcp will return twenty (20) violations
+from robocop. This can be changed by defining different value in the
+`violation_count` (int) setting.
+
+To make robocop-mcp return 30 rule violations:
+```toml
+[tool.robocop_mcp]
+violation_count = 30
+```
+
+How many rule violations the robocop-mcp should return depends on the
+LLM model being used, how verbose the proposed fix is and how long the
+LLM model context have been in use. It is hard to give good guidance on
+this subject, because LLM models change at fast pace and there are some
+many different models available.
+
