@@ -47,6 +47,13 @@ rule_priority = ["ARG01"]
 
 """
 
+
+ROBOCOP_TOML_FILE = """
+[lint]
+ignore = ["DOC02", "DOC03", "COM04", "COM04"]
+"""
+
+
 TEST_1 = """
 *** Test Cases ***
 this is a test
@@ -233,6 +240,35 @@ async def test_get_robocop_report_ignore(tmp_path, monkeypatch):
     toml_file = tmp_path / "pyproject.toml"
     toml_file.write_text(TOML_FILE_IGNORE)
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_robocop_toml(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    toml_file.write_text(TOML_FILE)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robocop_toml_file = tmp_path / "robocop.toml"
+    robocop_toml_file.write_text(ROBOCOP_TOML_FILE)
+    monkeypatch.setenv("ROBOCOPMCP_ROBOCOP_CONFIG_FILE", str(robocop_toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_no_robocopmcp_toml(tmp_path, monkeypatch):
+    robocop_toml_file = tmp_path / "robocop.toml"
+    robocop_toml_file.write_text(ROBOCOP_TOML_FILE)
+    monkeypatch.setenv("ROBOCOPMCP_ROBOCOP_CONFIG_FILE", str(robocop_toml_file))
     robot_file = tmp_path / "sample.robot"
     robot_file.write_text(TEST_1)
     result = await get_robocop_report(str(robot_file))

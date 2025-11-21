@@ -141,4 +141,30 @@ should have:
 ```toml
 [tool.robocop_mcp]
 ignore = ["DOC02", "DOC03", "COM04"]
-````
+```
+
+## Support separate robocop configuration file
+Although robocop-mcp only supports `pyproject.toml`, the robocop itself
+does support multiple different configuration files. If your robocop
+configuration is not in `pyproject.toml`, then the separate configuration
+file can be defined in `ROBOCOPMCP_ROBOCOP_CONFIG_FILE` environment
+variable. Example `mcp.json`:
+
+```json
+{
+    "servers": {
+        "robocop-mcp":{
+            "type": "stdio",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": [
+                "-m",
+                "robocop_mcp",
+            ],
+            "env": {
+                "ROBOCOPMCP_CONFIG_FILE": "${workspaceFolder}/pyproject.toml",
+                "ROBOCOPMCP_ROBOCOP_CONFIG_FILE": "${workspaceFolder}/robocop.toml",
+            }
+        }
+    }
+}
+```
