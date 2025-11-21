@@ -173,3 +173,11 @@ def resolve_path(path: str | None) -> str:
     if path is None:
         return str(Path())
     return str(Path(path))
+
+
+def set_robocop_config_file(config: Config, kwargs: dict) -> dict:
+    if config.robocop_toml and config.robocop_toml.is_file():
+        kwargs["configuration_file"] = config.robocop_toml
+    elif config.robocop_configured:
+        kwargs["configuration_file"] = config.robocopmcp_config_file
+    return kwargs

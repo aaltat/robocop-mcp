@@ -18,27 +18,45 @@ import sys
 from io import StringIO
 from pathlib import Path
 
+import typer
 from robocop.run import format_files  # type: ignore
 
-from .config import logger
+from .config import get_config, logger, set_robocop_config_file
 
 
 class Capturing(list):
     def __enter__(self) -> "Capturing":
         self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
+        self._stderr = sys.stderr
+        sys.stdout = self._stringio_out = StringIO()
+        sys.stderr = self._stringio_err = StringIO()
         return self
 
     def __exit__(self, *_: object) -> None:
-        self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio  # free up some memory
+        stdout_content = self._stringio_out.getvalue()
+        stderr_content = self._stringio_err.getvalue()
+        self.extend(stdout_content.splitlines())
+        self.extend(stderr_content.splitlines())
+        del self._stringio_out
+        del self._stringio_err
         sys.stdout = self._stdout
+        sys.stderr = self._stderr
 
 
 async def robocop_format(path: Path) -> str:
     sources = [path]
+    kwargs = {"sources": sources}
+    config = get_config()
+    kwargs = set_robocop_config_file(config, kwargs)
+    raised_error = None
     with Capturing() as output:
-        format_files(sources=sources, silent=True)
-        report = "\n".join(output)
+        try:
+            format_files(**kwargs)
+        except typer.Exit:
+            pass
+        except Exception as error:  # noqa
+            logger.error("Error during RoboCop format: %s", error)
+            raised_error = error
+    report = "\n".join(output) if not raised_error else f"Error during formatting: {raised_error}"
     logger.info("RoboCop format completed with report: %s", report)
-    return f"All done in {report}"
+    return report
