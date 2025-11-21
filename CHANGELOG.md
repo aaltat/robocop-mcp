@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.3.0 (2025-11-21)
+
+### Features
+
+- Add support for separate robocop config file
+  ([`e108ba4`](https://github.com/aaltat/robocop-mcp/commit/e108ba4110d10a0fb0e58da837fb943b0f1dbed0))
+
+
 ## v1.2.0 (2025-11-20)
 
 ### Features
