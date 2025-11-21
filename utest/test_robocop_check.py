@@ -1,12 +1,10 @@
 import pytest
 from approvaltests.approvals import verify
 
+from src.robocop_mcp.config import Config, get_config
+from src.robocop_mcp.mcp_check import Violation, run_robocop
 from src.robocop_mcp.server import (
-    Config,
-    Violation,
-    _get_config,
     get_robocop_report,
-    _run_robocop,
 )
 
 
@@ -279,7 +277,7 @@ async def test_get_robocop_report_no_robocopmcp_toml(tmp_path, monkeypatch):
 
 def test_get_config_default(monkeypatch):
     monkeypatch.delenv("ROBOCOPMCP_CONFIG_FILE", raising=False)
-    config = _get_config()
+    config = get_config()
     assert isinstance(config, Config)
     assert config.robocopmcp_config_file is None
     assert isinstance(config.rules, list)
@@ -290,7 +288,7 @@ def test_get_config_with_toml(tmp_path, monkeypatch):
     toml_file = tmp_path / "pyproject.toml"
     toml_file.write_text('[tool.robocop_mcp]\nDOC02 = "Missing documentation"\nviolation_count = 5\n')
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
-    config = _get_config()
+    config = get_config()
     assert config.robocopmcp_config_file == toml_file.resolve()
     assert config.violation_count == 5
     assert any(rule.rule_id == "DOC02" for rule in config.rules)
@@ -303,7 +301,7 @@ async def test_run_robocop_with_sample_file(tmp_path, monkeypatch):
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
     robot_file = tmp_path / "sample.robot"
     robot_file.write_text(TEST_2)
-    result = await _run_robocop(str(robot_file))
+    result = await run_robocop(str(robot_file))
     assert isinstance(result, list)
     assert all(isinstance(v, Violation) for v in result)
     # Optionally check fields of the first violation
