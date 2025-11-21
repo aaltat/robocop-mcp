@@ -59,6 +59,7 @@ class Config:
     rule_priority: list[str]
     rule_ignore: list[str]
     robocop_configured: bool = False
+    robocop_toml: Path | None = None
 
 
 def get_robocop_rules() -> list[Rule]:
@@ -147,7 +148,10 @@ def _get_rule_priority(config: dict, pyproject_toml: Path) -> list[str]:
     return rule_priority
 
 
-def _robocop_configured_in_toml(data: dict, pyproject_toml: Path) -> bool:
+def _robocop_configured_in_toml(data: dict, pyproject_toml: Path, robocop_toml: Path | None) -> bool:
+    if robocop_toml and robocop_toml.is_file():
+        logger.info("RoboCop configuration found in %s", robocop_toml)
+        return True
     if "tool" in data and "robocop" in data["tool"]:
         logger.info("RoboCop configuration found in %s", pyproject_toml)
         robocop_configured = True
@@ -160,6 +164,8 @@ def _robocop_configured_in_toml(data: dict, pyproject_toml: Path) -> bool:
 def _get_config() -> Config:
     pyproject_toml_env = os.environ.get("ROBOCOPMCP_CONFIG_FILE")
     pyproject_toml = Path(pyproject_toml_env).resolve() if pyproject_toml_env else None
+    robocop_toml_env = os.environ.get("ROBOCOPMCP_ROBOCOP_CONFIG_FILE")
+    robocop_toml = Path(robocop_toml_env).resolve() if robocop_toml_env else None
     if pyproject_toml and pyproject_toml.is_file():
         with pyproject_toml.open("r+b") as file:
             data = tomli.load(file)
@@ -168,7 +174,7 @@ def _get_config() -> Config:
         rules = _append_robocop_rules(rules, ROBOCOP_RULES)
         count = _get_violation_count(robocop_mcp, pyproject_toml)
         rule_priority = _get_rule_priority(robocop_mcp, pyproject_toml)
-        robocop_configured = _robocop_configured_in_toml(data, pyproject_toml)
+        robocop_configured = _robocop_configured_in_toml(data, pyproject_toml, robocop_toml)
         ignore = robocop_mcp.get("ignore", [])
     else:
         logger.info("No pyproject.toml file found, using default configuration.")
@@ -177,7 +183,7 @@ def _get_config() -> Config:
         rule_priority = []
         robocop_configured = False
         ignore = []
-    return Config(pyproject_toml, rules, count, rule_priority, ignore, robocop_configured)
+    return Config(pyproject_toml, rules, count, rule_priority, ignore, robocop_configured, robocop_toml)
 
 
 def _convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
@@ -197,12 +203,20 @@ def _convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
     ]
 
 
+def _robocop_config_file(config: Config, kwargs: dict) -> dict:
+    if config.robocop_toml and config.robocop_toml.is_file():
+        kwargs["configuration_file"] = config.robocop_toml
+    elif config.robocop_configured:
+        kwargs["configuration_file"] = config.robocopmcp_config_file
+    return kwargs
+
+
 async def _run_robocop(path: str) -> list[Violation]:
     sources = [Path(path)]
     kwargs = {"sources": sources, "return_result": True, "silent": True}
     config = _get_config()
-    if config.robocop_configured:
-        kwargs["configuration_file"] = config.robocopmcp_config_file
+    kwargs = _robocop_config_file(config, kwargs)
+    logger.info("Running Robocop check_files with kwargs: %s", kwargs)
     result = check_files(**kwargs)
     if result is None:
         return []
