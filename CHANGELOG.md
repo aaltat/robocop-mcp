@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.4.0 (2025-11-21)
+
+### Build System
+
+- **deps**: Bump ruff from 0.14.5 to 0.14.6
+  ([`e7fc068`](https://github.com/aaltat/robocop-mcp/commit/e7fc0689d58ab84567ef9edec534a17a4886541f))
+
+### Chores
+
+- Refactore code to smaller modules
+  ([`7b2ac96`](https://github.com/aaltat/robocop-mcp/commit/7b2ac96409630c7eee2c1ddf997f42e03e2f3440))
+
+- Update ruff
+  ([`fb58b6f`](https://github.com/aaltat/robocop-mcp/commit/fb58b6f21a0063db55b1120d0d1cfb078466d676))
+
+### Features
+
+- Add support for robocop format
+  ([`a614175`](https://github.com/aaltat/robocop-mcp/commit/a614175cc22338f5f1d6e03688064ee1b28d1228))
+
+
 ## v1.3.0 (2025-11-21)
 
 ### Features
