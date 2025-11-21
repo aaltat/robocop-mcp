@@ -21,7 +21,7 @@ from pathlib import Path
 from robocop.linter.diagnostics import Diagnostic  # type: ignore
 from robocop.run import check_files  # type: ignore
 
-from .config import Config, get_config, logger
+from .config import Config, get_config, logger, set_robocop_config_file
 
 
 @dataclass
@@ -53,19 +53,11 @@ def _convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
     ]
 
 
-def _robocop_config_file(config: Config, kwargs: dict) -> dict:
-    if config.robocop_toml and config.robocop_toml.is_file():
-        kwargs["configuration_file"] = config.robocop_toml
-    elif config.robocop_configured:
-        kwargs["configuration_file"] = config.robocopmcp_config_file
-    return kwargs
-
-
 async def run_robocop(path: str) -> list[Violation]:
     sources = [Path(path)]
     kwargs = {"sources": sources, "return_result": True, "silent": True}
     config = get_config()
-    kwargs = _robocop_config_file(config, kwargs)
+    kwargs = set_robocop_config_file(config, kwargs)
     logger.info("Running Robocop check_files with kwargs: %s", kwargs)
     result = check_files(**kwargs)
     if result is None:

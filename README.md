@@ -1,6 +1,26 @@
 # Robocop MCP server
 Robocop MCP server helps users to resolve their static code analysis
-errors and warnings with help of an LLM.
+errors and warnings with help of an LLM. It has two tools to help
+resolve Robocop rules:
+
+## Get robocop report
+Get robocop report tool allows calls `robocop check` command and
+returns one rule violation (maximum 20 from one rule) to LLM.
+The rule violation summary also contains default recommendation
+how the rule violation can be fixed. User than can accept the
+suggested proposal or tell LLM a different way to fix the rule
+violation.
+
+The maximum number of rule violations, proposed fix for a rule
+and many more things can be configured in the `pyproject.toml`
+file. See [Configuration](#configuration) chapter for more details.
+
+## Run robocop format
+You can also run robocop format tool. Because robocop has complex
+commandline syntax, robocop-mcp only support giving file or folder
+as an argument for the `format` command. Rest of the configuration
+should be placed in the
+[robocop configuration file](https://robocop.dev/stable/configuration/).
 
 # Install
 
@@ -27,7 +47,7 @@ Install with pip:
         }
     }
 }
-````
+```
 3. Change your CopPilot chat to Agent mode and select
 suitable model for your use.
 4. Remember to click start button in the `mcp.json` file

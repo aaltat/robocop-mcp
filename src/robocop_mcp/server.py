@@ -111,8 +111,7 @@ async def run_robocop_format(path: str | None) -> str:
     """
     path_resolved = resolve_path(path)
     logger.info("Running Robocop format on path: '%s'", path_resolved)
-    report = await robocop_format(Path(path_resolved))
-    return f"RoboCop format completed. Report: {report}"
+    return await robocop_format(Path(path_resolved))
 
 
 def main() -> None:
