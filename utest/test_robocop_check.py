@@ -1,8 +1,9 @@
+
 import pytest
 from approvaltests.approvals import verify
 
 from src.robocop_mcp.config import Config, get_config
-from src.robocop_mcp.mcp_check import Violation, run_robocop
+from src.robocop_mcp.mcp_check import Violation, get_violation_fix, run_robocop
 from src.robocop_mcp.server import (
     get_robocop_report,
 )
@@ -281,3 +282,23 @@ async def test_run_robocop_with_sample_file(tmp_path, monkeypatch):
     assert hasattr(v, "file")
     assert hasattr(v, "rule_id")
     assert hasattr(v, "description")
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_no_fix_found(tmp_path):
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+
+    mock_violation = Violation(
+        file=robot_file,
+        start_line=2,
+        end_line=2,
+        start_column=1,
+        end_column=10,
+        severity="W",
+        rule_id="NotHere001",
+        description="Missing documentation in 'Test Case' test case",
+    )
+    config = get_config()
+    result = get_violation_fix(mock_violation, config)
+    assert result == "No solution proposed fix found"
