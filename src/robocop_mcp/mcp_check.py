@@ -119,7 +119,7 @@ def _is_file(path: str) -> bool:
         return False
 
 
-def _get_violation_fix(violation: Violation, config: Config) -> str:
+def get_violation_fix(violation: Violation, config: Config) -> str:
     for rule in config.rules:
         if rule.rule_id == violation.rule_id:
             rule_instruction = rule.instruction
