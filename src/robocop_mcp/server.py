@@ -20,7 +20,7 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 from .config import get_config, logger, resolve_path
-from .mcp_check import _format_report, _get_violation_fix, filter_violations, run_robocop
+from .mcp_check import _format_report, get_violation_fix, filter_violations, run_robocop
 from .mcp_format import robocop_format
 
 mcp = FastMCP("op-robocop-mcp")
@@ -78,12 +78,9 @@ async def get_robocop_report(path: str | None) -> str:
     for item in filter_report:
         markdown_lines.extend(_format_report(item))
 
-    first_violation = filter_report[0] if filter_report else None
-    if not first_violation:
-        markdown_lines.append("No violations found.")
-        return "\n".join(markdown_lines)
+    first_violation = filter_report[0]
     config = get_config()
-    proposed_fix = _get_violation_fix(first_violation, config)
+    proposed_fix = get_violation_fix(first_violation, config)
     markdown_lines.extend(
         [
             "",
