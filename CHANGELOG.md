@@ -2,6 +2,38 @@
 
 <!-- version list -->
 
+## v1.5.0 (2025-11-27)
+
+### Bug Fixes
+
+- Deps updates
+  ([`878c6bb`](https://github.com/aaltat/robocop-mcp/commit/878c6bb572a35989b48984ac352a51664134c823))
+
+### Build System
+
+- **deps**: Bump actions/checkout from 5 to 6
+  ([`557a537`](https://github.com/aaltat/robocop-mcp/commit/557a5377a81cf79f9261add8f95b691db683d69a))
+
+- **deps**: Bump robotframework-robocop from 6.11.0 to 6.12.0
+  ([`5731ec2`](https://github.com/aaltat/robocop-mcp/commit/5731ec2a66b792e3639d6fd74970f85cb0769d0b))
+
+- **deps**: Bump tomli from 2.2.1 to 2.3.0
+  ([`ecad5c0`](https://github.com/aaltat/robocop-mcp/commit/ecad5c0b80e2f74cde24010bf1bc5a9a2129e384))
+
+### Chores
+
+- Improve testing
+  ([`48edb99`](https://github.com/aaltat/robocop-mcp/commit/48edb999c6aa6a180a4338e449de805c4d075f5a))
+
+- Remove dead code
+  ([`1f2b261`](https://github.com/aaltat/robocop-mcp/commit/1f2b261643f715c9a1e43473723fd06c5c6d083c))
+
+### Features
+
+- Robocop-mcp defaul fixes for rule violations
+  ([`1347154`](https://github.com/aaltat/robocop-mcp/commit/13471541b47678abbdd5d287329eaced0e6f1b16))
+
+
 ## v1.4.0 (2025-11-21)
 
 ### Build System
