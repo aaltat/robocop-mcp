@@ -27,8 +27,8 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.28.1",
-    "mcp[cli]>=1.21.1",
-    "robotframework-robocop>=6.11.0",
+    "mcp[cli]>=1.22.0",
+    "robotframework-robocop>=6.12.0",
     "tomli>=2.2.1",
 ]
 
