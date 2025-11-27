@@ -1,14 +1,22 @@
-
 import pytest
 from approvaltests.approvals import verify
+from types import SimpleNamespace
 
-from src.robocop_mcp.config import Config, get_config
+from src.robocop_mcp.config import Config, get_config, Rule, _get_user_rule_fixes
 from src.robocop_mcp.mcp_check import Violation, get_violation_fix, run_robocop
 from src.robocop_mcp.server import (
     get_robocop_report,
 )
 
-from .data import TEST_1, TOML_FILE, ROBOCOP_TOML_FILE, TOML_FILE_RULE_AS_FILE
+from .data import (
+    TEST_1,
+    TOML_FILE,
+    ROBOCOP_TOML_FILE,
+    TOML_FILE_RULE_AS_FILE,
+    TEST_NO_ERRORS,
+    TEST_2,
+    TEST_3_DUPLICATE_NAMES,
+)
 
 
 TOML_FILE_NO_CONFIG = """
@@ -27,25 +35,6 @@ TOML_FILE_IGNORE = """
 ignore = ["DOC02", "DOC03", "COM04"]
 rule_priority = ["ARG01"]
 
-"""
-
-
-TEST_2 = """
-*** Test Cases ***
-Example Test 1
-    Log    Hello, World!
-Example Test 2
-    Log    Hello, World!"""
-
-TEST_NO_ERRORS = """\
-*** Settings ***
-Documentation     Sample test file for robocop-mcp tests
-
-
-*** Test Cases ***
-This is a test
-    [Documentation]    This is a test case
-    Log    Hello, World!
 """
 
 
@@ -253,7 +242,10 @@ def test_get_config_default(monkeypatch):
     config = get_config()
     assert isinstance(config, Config)
     assert config.robocopmcp_config_file is None
-    assert isinstance(config.rules, list)
+    assert isinstance(config.user_rules, dict)
+    assert isinstance(config.predefined_fixes, dict)
+    assert "README" not in config.predefined_fixes
+    assert isinstance(config.robocop_rules, dict)
     assert config.violation_count == 20
 
 
@@ -264,7 +256,7 @@ def test_get_config_with_toml(tmp_path, monkeypatch):
     config = get_config()
     assert config.robocopmcp_config_file == toml_file.resolve()
     assert config.violation_count == 5
-    assert any(rule.rule_id == "DOC02" for rule in config.rules)
+    assert any(rule.rule_id == "DOC02" for rule in config.user_rules.values())
 
 
 @pytest.mark.asyncio
@@ -302,3 +294,151 @@ async def test_get_robocop_report_no_fix_found(tmp_path):
     config = get_config()
     result = get_violation_fix(mock_violation, config)
     assert result == "No solution proposed fix found"
+
+
+@pytest.mark.asyncio
+async def test_get_violation_fix_returns_instruction(tmp_path):
+    sample_file = tmp_path / "sample.robot"
+    sample_file.write_text(TEST_1)
+    violation = Violation(
+        file=sample_file,
+        start_line=1,
+        end_line=1,
+        start_column=1,
+        end_column=1,
+        severity="W",
+        rule_id="DOC01",
+        description="Missing documentation",
+    )
+    config = SimpleNamespace(
+        user_rules={"DOC01": Rule(rule_id="DOC01", instruction="Add documentation to the test case.")},
+        predefined_fixes={},
+    )
+
+    result = get_violation_fix(violation, config)
+
+    assert result == "Add documentation to the test case."
+
+
+@pytest.mark.asyncio
+async def test_get_violation_fix_reads_instruction_file(tmp_path):
+    sample_file = tmp_path / "sample.robot"
+    sample_file.write_text(TEST_1)
+    instruction_file = tmp_path / "instruction.md"
+    instruction_file.write_text("Detailed fix instructions.")
+    violation = Violation(
+        file=sample_file,
+        start_line=1,
+        end_line=1,
+        start_column=1,
+        end_column=1,
+        severity="W",
+        rule_id="DOC02",
+        description="Another issue",
+    )
+    config = SimpleNamespace(
+        user_rules={"DOC02": Rule(rule_id="DOC02", instruction=str(instruction_file))},
+        predefined_fixes={},
+        robocop_rules={},
+    )
+
+    result = get_violation_fix(violation, config)
+
+    assert result == "Detailed fix instructions."
+
+
+@pytest.mark.asyncio
+async def test_get_violation_fix_returns_default_when_not_found(tmp_path):
+    sample_file = tmp_path / "sample.robot"
+    sample_file.write_text(TEST_1)
+    violation = Violation(
+        file=sample_file,
+        start_line=1,
+        end_line=1,
+        start_column=1,
+        end_column=1,
+        severity="W",
+        rule_id="DOC03",
+        description="Unmatched issue",
+    )
+    config = SimpleNamespace(
+        user_rules={"DOC01": Rule(rule_id="DOC01", instruction="Some instruction")},
+        predefined_fixes={},
+        robocop_rules={},
+    )
+
+    result = get_violation_fix(violation, config)
+
+    assert result == "No solution proposed fix found"
+
+
+@pytest.mark.asyncio
+async def test_get_violation_fix_returns_predefined_fix(tmp_path):
+    sample_file = tmp_path / "sample.robot"
+    sample_file.write_text(TEST_3_DUPLICATE_NAMES)
+    violation = Violation(
+        file=sample_file,
+        start_line=1,
+        end_line=1,
+        start_column=1,
+        end_column=1,
+        severity="W",
+        rule_id="DUP01",
+        description="There are duplicate test cases",
+    )
+    fix_proposal = "With a duplicate test names add a running index index in the test name with three digits."
+    config = SimpleNamespace(
+        user_rules={"DOC01": Rule(rule_id="DOC01", instruction="Some instruction")},
+        predefined_fixes={
+            "DUP01": Rule(
+                rule_id="DUP01",
+                instruction=fix_proposal,
+            )
+        },
+        robocop_rules={},
+    )
+    result = get_violation_fix(violation, config)
+    assert fix_proposal == result
+
+
+@pytest.mark.asyncio
+async def test_get_violation_fix_returns_custom_rule_instead_of_predefined_fix(tmp_path):
+    sample_file = tmp_path / "sample.robot"
+    sample_file.write_text(TEST_3_DUPLICATE_NAMES)
+    violation = Violation(
+        file=sample_file,
+        start_line=1,
+        end_line=1,
+        start_column=1,
+        end_column=1,
+        severity="W",
+        rule_id="DUP01",
+        description="There are duplicate test cases",
+    )
+    fix_proposal = "With a duplicate test names add a running index index in the test name with three digits."
+    config = SimpleNamespace(
+        user_rules={"DUP01": Rule(rule_id="DUP01", instruction="Some instruction")},
+        predefined_fixes={
+            "DUP01": Rule(
+                rule_id="DUP01",
+                instruction=fix_proposal,
+            )
+        },
+        robocop_rules={},
+    )
+    result = get_violation_fix(violation, config)
+    assert result == "Some instruction"
+
+
+def test_get_user_rule_fixes_populates_rules():
+    assert _get_user_rule_fixes({}) == {}
+    config = {"doc01": "Add docs", "ARG05": "Update arguments"}
+    result = _get_user_rule_fixes(config)
+
+    assert set(result.keys()) == {"DOC01", "ARG05"}
+    assert isinstance(result["DOC01"], Rule)
+    assert result["DOC01"].instruction == "Add docs"
+    assert result["ARG05"].instruction == "Update arguments"
+    config = {"doc01": "Add docs", "ARG05": "Update arguments", "violation_count": 10}
+    result = _get_user_rule_fixes(config)
+    assert set(result.keys()) == {"DOC01", "ARG05"}

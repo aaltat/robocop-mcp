@@ -120,11 +120,20 @@ def _is_file(path: str) -> bool:
 
 
 def get_violation_fix(violation: Violation, config: Config) -> str:
-    for rule in config.rules:
-        if rule.rule_id == violation.rule_id:
-            rule_instruction = rule.instruction
-            if rule_instruction and _is_file(rule_instruction):
-                with Path(rule_instruction).open("r") as file:
-                    return file.read()
-            return rule_instruction
+    rule_id = violation.rule_id
+    if rule_id in config.user_rules:
+        rule_fix = config.user_rules[rule_id]
+        if _is_file(rule_fix.instruction):
+            with Path(rule_fix.instruction).open("r") as file:
+                return file.read()
+        return rule_fix.instruction
+    if rule_id in config.predefined_fixes:
+        rule_fix = config.predefined_fixes[rule_id]
+        if _is_file(rule_fix.instruction):
+            with Path(rule_fix.instruction).open("r") as file:
+                return file.read()
+        return rule_fix.instruction
+    if rule_id in config.robocop_rules:
+        rule_fix = config.robocop_rules[rule_id]
+        return rule_fix.instruction
     return "No solution proposed fix found"

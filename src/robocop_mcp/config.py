@@ -24,6 +24,8 @@ from robocop import config as robocop_config  # type: ignore
 from robocop.linter.rules import RuleFilter, filter_rules_by_category  # type: ignore
 from robocop.linter.runner import RobocopLinter  # type: ignore
 
+from .rules import get_rules_files
+
 logging.basicConfig(format="%(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p", level=logging.INFO)
 logger = logging.getLogger("robocop-mcp")
 
@@ -37,7 +39,9 @@ class Rule:
 @dataclass
 class Config:
     robocopmcp_config_file: Path | None
-    rules: list[Rule]
+    user_rules: dict[str, Rule]
+    predefined_fixes: dict[str, Rule]
+    robocop_rules: dict[str, Rule]
     violation_count: int
     rule_priority: list[str]
     rule_ignore: list[str]
@@ -45,31 +49,15 @@ class Config:
     robocop_toml: Path | None = None
 
 
-def _is_robocop_rule(robocop_rules: list[Rule], rule: str) -> bool:
-    return any(robocop_rule.rule_id.lower() == rule.lower() for robocop_rule in robocop_rules)
-
-
-def _rule_is_set(rule: Rule, current_rules: list[Rule]) -> bool:
-    return any(rule.rule_id == current_rule.rule_id for current_rule in current_rules)
-
-
-def _get_rule_fixes(robocop_rule: list[Rule], config: dict) -> list[Rule]:
-    rules: list[Rule] = []
+def _get_user_rule_fixes(config: dict) -> dict[str, Rule]:
+    rules: dict[str, Rule] = {}
     if not config:
         return rules
     for key, value in config.items():
-        if _is_robocop_rule(robocop_rule, key):
-            rules.append(Rule(key, value))
+        rule = key.upper()
+        if rule in ROBOCOP_RULES:
+            rules[rule] = Rule(rule, value)
     return rules
-
-
-def _append_robocop_rules(rules: list[Rule], robocop_rules: list[Rule]) -> list[Rule]:
-    all_rules: list[Rule] = []
-    for rule in rules + robocop_rules:
-        if _rule_is_set(rule, all_rules):
-            continue
-        all_rules.append(rule)
-    return all_rules
 
 
 def _get_violation_count(config: dict, pyproject_toml: Path) -> int:
@@ -109,7 +97,7 @@ def _robocop_configured_in_toml(data: dict, pyproject_toml: Path, robocop_toml: 
     return robocop_configured
 
 
-def _get_robocop_rules() -> list[Rule]:
+def _get_robocop_rules() -> dict[str, Rule]:
     linter_config = robocop_config.LinterConfig(  # set to None to not override
         configure=None,
         select=None,
@@ -138,7 +126,19 @@ def _get_robocop_rules() -> list[Rule]:
         RuleFilter.ALL,
         default_config.linter.target_version,  # type: ignore
     )
-    return [Rule(rule.rule_id, rule.docs) for rule in rules]
+    return {rule.rule_id: Rule(rule.rule_id, rule.docs) for rule in rules}
+
+
+def _get_predefined_fixes() -> dict[str, Rule]:
+    rules = {}
+    for rule_file in get_rules_files():
+        rule_id = rule_file.stem.upper()
+        if rule_id == "README":
+            continue
+        with rule_file.open("r", encoding="utf-8") as file:
+            instruction = file.read().strip()
+        rules[rule_id] = Rule(rule_id, instruction)
+    return rules
 
 
 ROBOCOP_RULES = _get_robocop_rules()
@@ -149,24 +149,34 @@ def get_config() -> Config:
     pyproject_toml = Path(pyproject_toml_env).resolve() if pyproject_toml_env else None
     robocop_toml_env = os.environ.get("ROBOCOPMCP_ROBOCOP_CONFIG_FILE")
     robocop_toml = Path(robocop_toml_env).resolve() if robocop_toml_env else None
+    predefined_fixes = _get_predefined_fixes()
     if pyproject_toml and pyproject_toml.is_file():
         with pyproject_toml.open("r+b") as file:
             data = tomli.load(file)
         robocop_mcp = data["tool"].get("robocop_mcp", {})
-        rules = _get_rule_fixes(ROBOCOP_RULES, robocop_mcp)
-        rules = _append_robocop_rules(rules, ROBOCOP_RULES)
+        user_rules = _get_user_rule_fixes(robocop_mcp)
         count = _get_violation_count(robocop_mcp, pyproject_toml)
         rule_priority = _get_rule_priority(robocop_mcp, pyproject_toml)
         robocop_configured = _robocop_configured_in_toml(data, pyproject_toml, robocop_toml)
         ignore = robocop_mcp.get("ignore", [])
     else:
         logger.info("No pyproject.toml file found, using default configuration.")
-        rules = ROBOCOP_RULES
+        user_rules = {}
         count = 20
         rule_priority = []
         robocop_configured = False
         ignore = []
-    return Config(pyproject_toml, rules, count, rule_priority, ignore, robocop_configured, robocop_toml)
+    return Config(
+        pyproject_toml,
+        user_rules,
+        predefined_fixes,
+        ROBOCOP_RULES,
+        count,
+        rule_priority,
+        ignore,
+        robocop_configured,
+        robocop_toml,
+    )
 
 
 def resolve_path(path: str | None) -> str:
