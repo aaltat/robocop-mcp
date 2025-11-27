@@ -27,3 +27,30 @@ rule_priority = ["DOC02"]
 language = ["en"]
 
 """
+
+TEST_2 = """
+*** Test Cases ***
+Example Test 1
+    Log    Hello, World!
+Example Test 2
+    Log    Hello, World!"""
+
+TEST_NO_ERRORS = """\
+*** Settings ***
+Documentation     Sample test file for robocop-mcp tests
+
+
+*** Test Cases ***
+This is a test
+    [Documentation]    This is a test case
+    Log    Hello, World!
+"""
+
+TEST_3_DUPLICATE_NAMES = """\
+*** Test Cases ***
+Example Test
+    Log    Hello, World!
+Example Test
+    Log    Hello, World!
+
+"""
