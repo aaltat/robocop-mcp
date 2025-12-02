@@ -110,8 +110,8 @@ rule_priority = [
 ]
 ```
 
-It is also possible to define rule priority by rule name. Example if there is need to
-`ARG01` and `ARG02` rules by name, then `rule_priorit` would look like:
+It is also possible to define rule priority by rule name. Example if there is a need to
+define `ARG01` and `ARG02` rules by name, then `rule_priority` would look like:
 ```toml
 [tool.robocop_mcp]
 rule_priority = [
@@ -159,7 +159,7 @@ should have:
 ARG01 = "my_rules/ARG01.md"
 ```
 
-It is also possible to define custom fic proposals by rule name.
+It is also possible to define custom fix proposals by rule name.
 Example to provide custom fix proposal for `ARG01` by name, then
 toml file would look like:
 ```toml
