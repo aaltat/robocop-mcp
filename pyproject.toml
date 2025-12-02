@@ -36,10 +36,10 @@ dependencies = [
 robocop_mcp = "robocop_mcp.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/tatuaalto/robocop-mcp"
-Repository = "https://github.com/tatuaalto/robocop-mcp"
-Issues = "https://github.com/tatuaalto/robocop-mcp/issues"
-Documentation = "https://github.com/tatuaalto/robocop-mcp/README.md"
+Homepage = "https://github.com/aaltat/robocop-mcp"
+Repository = "https://github.com/aaltat/robocop-mcp"
+Issues = "https://github.com/aaltat/robocop-mcp/issues"
+Documentation = "https://github.com/aaltat/robocop-mcp/blob/main/README.md"
 
 [tool.setuptools]
 include-package-data = true
