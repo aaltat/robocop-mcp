@@ -2,6 +2,41 @@
 
 <!-- version list -->
 
+## v1.6.0 (2025-12-02)
+
+### Bug Fixes
+
+- Add better doc for get_robocop_report method
+  ([`c8106fb`](https://github.com/aaltat/robocop-mcp/commit/c8106fbb0a089026c3fd4d438770d1726715adcd))
+
+- Corrent typos
+  ([`9be3f29`](https://github.com/aaltat/robocop-mcp/commit/9be3f293b9edb71b90baf1661e96c50f551d0b8c))
+
+### Build System
+
+- **deps**: Bump mypy from 1.18.2 to 1.19.0
+  ([`0ba50c8`](https://github.com/aaltat/robocop-mcp/commit/0ba50c8d81b7016b762668fda3f0bb882f5f9140))
+
+- **deps**: Bump robotframework-robocop from 6.12.0 to 6.13.0
+  ([`4047af9`](https://github.com/aaltat/robocop-mcp/commit/4047af969ba5192b6a97739d2950f7d59eb19fbf))
+
+### Chores
+
+- Improve coverage
+  ([`926fa77`](https://github.com/aaltat/robocop-mcp/commit/926fa77191572b7a64c2f4a95bc1099ac4cc681f))
+
+- Make format_report public method
+  ([`1a8a0b5`](https://github.com/aaltat/robocop-mcp/commit/1a8a0b5f59ad5a189dcd4185b48328aac2a4aa07))
+
+### Features
+
+- Increase robocop to 6.13.0
+  ([`12b9afa`](https://github.com/aaltat/robocop-mcp/commit/12b9afa653dfbc811b581adfecedb4851997a16c))
+
+- Support defining fixes by rule name
+  ([`f25f65f`](https://github.com/aaltat/robocop-mcp/commit/f25f65f9936355734739730962c0002dcec74e7e))
+
+
 ## v1.5.0 (2025-11-27)
 
 ### Bug Fixes
