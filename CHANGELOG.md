@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.6.2 (2025-12-02)
+
+### Bug Fixes
+
+- Robocop format rerun to 10
+  ([`103db2e`](https://github.com/aaltat/robocop-mcp/commit/103db2e6aa9456b0e5329f119f97549670ee7708))
+
+
 ## v1.6.1 (2025-12-02)
 
 ### Bug Fixes
