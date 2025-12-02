@@ -45,7 +45,7 @@ class Capturing(list):
 
 async def robocop_format(path: Path) -> str:
     sources = [path]
-    kwargs = {"sources": sources}
+    kwargs = {"sources": sources, "reruns": 10}
     config = get_config()
     kwargs = set_robocop_config_file(config, kwargs)
     raised_error = None

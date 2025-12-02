@@ -21,6 +21,7 @@ commandline syntax, robocop-mcp only support giving file or folder
 as an argument for the `format` command. Rest of the configuration
 should be placed in the
 [robocop configuration file](https://robocop.dev/stable/configuration/).
+The `--rerun` option is set to 10.
 
 # Install
 
