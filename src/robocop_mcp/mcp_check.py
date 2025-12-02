@@ -94,7 +94,7 @@ def filter_violations(violations: list[Violation]) -> list[Violation]:
     return filtered_violations
 
 
-def _format_report(violation: Violation) -> list[str]:
+def format_report(violation: Violation) -> list[str]:
     heading = (
         f"## Violation for file {violation.file.name} in line {violation.start_line} rule {violation.rule_id}"
     )
