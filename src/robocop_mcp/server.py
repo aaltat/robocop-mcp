@@ -36,7 +36,10 @@ async def get_robocop_report(path: str | None) -> str:
         current directory for analysis.
 
     Returns:
-        str: The Robocop report in markdown format.
+        str: The Robocop report in markdown format. Report by default contains 20 first violations
+        of the same type. If there are other types of violations or there are more than 20 same type
+        of violations, a note is added about how many more violations were found but not shown.
+        Report contains at the end also a proposed fix for the first violation.
 
     Example if there is one Violation in path, which looks like this:
     Violation(
@@ -64,6 +67,9 @@ async def get_robocop_report(path: str | None) -> str:
     severity: WARNING
 
     All violations reported.
+
+    ## Proposed fixe for violations
+    The following fix is proposed: Add documentation to the 'this is a test' test case
 
     """
     path_resolved = resolve_path(path)
