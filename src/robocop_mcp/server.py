@@ -20,7 +20,7 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 from .config import get_config, logger, resolve_path
-from .mcp_check import format_report, filter_violations, get_violation_fix, run_robocop
+from .mcp_check import filter_violations, format_report, get_violation_fix, run_robocop
 from .mcp_format import robocop_format
 
 mcp = FastMCP("op-robocop-mcp")
