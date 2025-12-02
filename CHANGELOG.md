@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.6.1 (2025-12-02)
+
+### Bug Fixes
+
+- Correct links in pyproject.toml
+  ([`0f0bead`](https://github.com/aaltat/robocop-mcp/commit/0f0bead6f584f342ae76275ff3f6c898796cc8d0))
+
+
 ## v1.6.0 (2025-12-02)
 
 ### Bug Fixes
