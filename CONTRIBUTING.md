@@ -1,3 +1,28 @@
+# Contributing
+
+Project uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+which allows create releases and releases notes automatically based on the
+commit massages. This to work, we need you to start your commit messages
+as explained
+[summary documentation](https://www.conventionalcommits.org/en/v1.0.0/#summary)
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+This project does not use the `scope` and if you are unsure, your first line in
+the commit message must start:
+```
+fix: explain why change is made
+```
+One PR can contain several commit messages, but all commit messages must be
+formatted according the
+[conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+rules.
+
 # Custom rule fixes
 
 By default robocop-mcp will suggest fixes based on the robocop rule documentation,
