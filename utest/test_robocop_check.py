@@ -2,7 +2,15 @@ import pytest
 from approvaltests.approvals import verify
 from types import SimpleNamespace
 
-from src.robocop_mcp.config import Config, get_config, Rule, _get_robocop_rules, _get_user_rule_fixes
+from src.robocop_mcp.config import (
+    Config,
+    _get_rule_ignore,
+    get_config,
+    Rule,
+    _get_robocop_rules,
+    _get_user_rule_fixes,
+    _get_robocop_rule_name,
+)
 from src.robocop_mcp.mcp_check import Violation, get_violation_fix, run_robocop
 from src.robocop_mcp.server import (
     get_robocop_report,
@@ -570,3 +578,48 @@ def test_get_robocop_rules_returns_rule_mapping():
         assert rule.rule_id == rule_id
         assert isinstance(rule.instruction, str)
         assert isinstance(rule.name, str)
+
+
+def test_get_robocop_rule_name_defaults_to_lowercase():
+    result = _get_robocop_rule_name("UNKNOWN_RULE_ID")
+    assert result == "unknown_rule_id"
+
+
+def test_get_rule_ignore_converts_string_to_list(tmp_path):
+    config = {"ignore": "DOC02"}
+    result = _get_rule_ignore(config, tmp_path / "pyproject.toml")
+
+    assert result == ["DOC02"]
+
+
+@pytest.mark.asyncio
+async def test_get_violation_fix_reads_predefined_instruction_file(tmp_path):
+    sample_file = tmp_path / "sample.robot"
+    sample_file.write_text(TEST_1)
+    instruction_file = tmp_path / "predefined_fix.md"
+    instruction_file.write_text("Predefined file instruction.")
+    violation = Violation(
+        file=sample_file,
+        start_line=1,
+        end_line=1,
+        start_column=1,
+        end_column=1,
+        severity="W",
+        rule_id="DOC02",
+        description="Needs predefined fix",
+    )
+    config = SimpleNamespace(
+        user_rules={},
+        predefined_fixes={
+            "DOC02": Rule(
+                rule_id="DOC02",
+                instruction=str(instruction_file),
+                name="missing-doc-keyword",
+            )
+        },
+        robocop_rules={},
+    )
+
+    result = get_violation_fix(violation, config)
+
+    assert result == "Predefined file instruction."
