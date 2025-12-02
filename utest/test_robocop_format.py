@@ -35,7 +35,9 @@ async def test_run_robocop_format_with_robocop_config_file(tmp_path, monkeypatch
 
         # Assert format_files was called with correct arguments
         mock_format_files.assert_called_once()
-        mock_format_files.assert_called_once_with(sources=[robot_file], configuration_file=robocop_toml_file)
+        mock_format_files.assert_called_once_with(
+            sources=[robot_file], configuration_file=robocop_toml_file, reruns=10
+        )
         assert "sample.robot" in result or result is not None
 
 
@@ -53,7 +55,9 @@ async def test_run_robocop_format_with_pyproject_file(tmp_path, monkeypatch):
         result = await run_robocop_format(robot_file)
 
         # Assert format_files was called with correct arguments
-        mock_format_files.assert_called_once_with(sources=[robot_file], configuration_file=toml_file)
+        mock_format_files.assert_called_once_with(
+            sources=[robot_file], configuration_file=toml_file, reruns=10
+        )
         assert "sample.robot" in result or result is not None
 
 
@@ -67,5 +71,5 @@ async def test_run_robocop_format_with_exception(tmp_path):
         mock_format_files.side_effect = Exception("Format error occurred")
 
         result = await run_robocop_format(robot_file)
-        mock_format_files.assert_called_once_with(sources=[robot_file])
+        mock_format_files.assert_called_once_with(sources=[robot_file], reruns=10)
         verify(result)
