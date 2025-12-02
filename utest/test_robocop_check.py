@@ -2,7 +2,7 @@ import pytest
 from approvaltests.approvals import verify
 from types import SimpleNamespace
 
-from src.robocop_mcp.config import Config, get_config, Rule, _get_user_rule_fixes
+from src.robocop_mcp.config import Config, get_config, Rule, _get_robocop_rules, _get_user_rule_fixes
 from src.robocop_mcp.mcp_check import Violation, get_violation_fix, run_robocop
 from src.robocop_mcp.server import (
     get_robocop_report,
@@ -13,6 +13,8 @@ from .data import (
     TOML_FILE,
     ROBOCOP_TOML_FILE,
     TOML_FILE_RULE_AS_FILE,
+    TOML_FILE_RULE_NAME_AS_FILE,
+    TOML_FILE_RULE_NAME_ALL_AS_FILE,
     TEST_NO_ERRORS,
     TEST_2,
     TEST_3_DUPLICATE_NAMES,
@@ -83,12 +85,92 @@ async def test_get_robocop_report_with_sample_file_and_rule_as_file(tmp_path, mo
 
 
 @pytest.mark.asyncio
+async def test_get_robocop_report_with_sample_file_and_rule_name_as_file(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    rule_folder = tmp_path / "rules"
+    rule_folder.mkdir(parents=True)
+    rule_file = rule_folder / "DOC02.md"
+    rule_file.write_text("Write documentation for the test case.")
+    rule_file_as_str = str(rule_file)
+    rule_file_as_str = rule_file_as_str.replace("\\", "/")
+    toml_file_text = TOML_FILE_RULE_NAME_AS_FILE
+    toml_file_text = toml_file_text.replace("REPLACE_ME", f'"{rule_file_as_str}"')
+    toml_file.write_text(toml_file_text)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+    file_line = [line for line in result.splitlines() if line.startswith("file")]
+    assert len(file_line) == 1
+    line = file_line[0]
+    assert "file: " in line
+    assert "sample.robot" in line
+
+
+@pytest.mark.asyncio
 async def test_get_robocop_report_with_rule_priority(tmp_path, monkeypatch):
     toml_file = tmp_path / "pyproject.toml"
     toml_text = TOML_FILE
     toml_text = toml_text.splitlines()
     toml_text.append('rule_priority = ["NAME07"]')
     toml_file.write_text("\n".join(toml_text))
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+    file_line = [line for line in result.splitlines() if line.startswith("file")]
+    assert len(file_line) == 1
+    line = file_line[0]
+    assert "file: " in line
+    assert "sample.robot" in line
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_with_rule_priority_as_name(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    rule_folder = tmp_path / "rules"
+    rule_folder.mkdir(parents=True)
+    rule_file = rule_folder / "DOC02.md"
+    rule_file.write_text("Write documentation for the test case.")
+    rule_file_as_str = str(rule_file)
+    rule_file_as_str = rule_file_as_str.replace("\\", "/")
+    toml_file_text = TOML_FILE_RULE_NAME_ALL_AS_FILE
+    toml_file_text = toml_file_text.replace("REPLACE_ME", f'"{rule_file_as_str}"')
+    toml_file.write_text(toml_file_text)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+    file_line = [line for line in result.splitlines() if line.startswith("file")]
+    assert len(file_line) == 1
+    line = file_line[0]
+    assert "file: " in line
+    assert "sample.robot" in line
+
+
+@pytest.mark.asyncio
+async def test_get_robocop_report_with_rule_priority_as_name_and_fix_as_rule_id(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    rule_folder = tmp_path / "rules"
+    rule_folder.mkdir(parents=True)
+    rule_file = rule_folder / "DOC02.md"
+    rule_file.write_text("Write documentation for the test case.")
+    rule_file_as_str = str(rule_file)
+    rule_file_as_str = rule_file_as_str.replace("\\", "/")
+    toml_file_text = TOML_FILE_RULE_NAME_ALL_AS_FILE
+    toml_file_text = toml_file_text.replace(
+        "missing-doc-test-case = REPLACE_ME", f'DOC02 = "{rule_file_as_str}"'
+    )
+    toml_file.write_text(toml_file_text)
     monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
     robot_file = tmp_path / "sample.robot"
     robot_file.write_text(TEST_1)
@@ -209,6 +291,24 @@ async def test_get_robocop_report_ignore(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_robocop_report_ignore_as_name(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    toml_file_text = TOML_FILE_IGNORE
+    toml_file_text = toml_file_text.replace(
+        'ignore = ["DOC02", "DOC03", "COM04"]',
+        "ignore = ['missing-doc-test-case', 'missing-doc-suite', 'ignored-data']",
+    )
+    toml_file.write_text(toml_file_text)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+    result = await get_robocop_report(str(robot_file))
+    lines = [line for line in result.splitlines() if not line.startswith("file")]
+    lines_filtered = "\n".join(lines)
+    verify(lines_filtered)
+
+
+@pytest.mark.asyncio
 async def test_get_robocop_report_robocop_toml(tmp_path, monkeypatch):
     toml_file = tmp_path / "pyproject.toml"
     toml_file.write_text(TOML_FILE)
@@ -311,7 +411,11 @@ async def test_get_violation_fix_returns_instruction(tmp_path):
         description="Missing documentation",
     )
     config = SimpleNamespace(
-        user_rules={"DOC01": Rule(rule_id="DOC01", instruction="Add documentation to the test case.")},
+        user_rules={
+            "DOC01": Rule(
+                rule_id="DOC01", instruction="Add documentation to the test case.", name="missing-doc-keyword"
+            )
+        },
         predefined_fixes={},
     )
 
@@ -337,7 +441,9 @@ async def test_get_violation_fix_reads_instruction_file(tmp_path):
         description="Another issue",
     )
     config = SimpleNamespace(
-        user_rules={"DOC02": Rule(rule_id="DOC02", instruction=str(instruction_file))},
+        user_rules={
+            "DOC02": Rule(rule_id="DOC02", instruction=str(instruction_file), name="missing-doc-keyword")
+        },
         predefined_fixes={},
         robocop_rules={},
     )
@@ -362,7 +468,9 @@ async def test_get_violation_fix_returns_default_when_not_found(tmp_path):
         description="Unmatched issue",
     )
     config = SimpleNamespace(
-        user_rules={"DOC01": Rule(rule_id="DOC01", instruction="Some instruction")},
+        user_rules={
+            "DOC01": Rule(rule_id="DOC01", instruction="Some instruction", name="missing-doc-keyword")
+        },
         predefined_fixes={},
         robocop_rules={},
     )
@@ -388,11 +496,14 @@ async def test_get_violation_fix_returns_predefined_fix(tmp_path):
     )
     fix_proposal = "With a duplicate test names add a running index index in the test name with three digits."
     config = SimpleNamespace(
-        user_rules={"DOC01": Rule(rule_id="DOC01", instruction="Some instruction")},
+        user_rules={
+            "DOC01": Rule(rule_id="DOC01", instruction="Some instruction", name="missing-doc-keyword")
+        },
         predefined_fixes={
             "DUP01": Rule(
                 rule_id="DUP01",
                 instruction=fix_proposal,
+                name="duplicated-test-cases",
             )
         },
         robocop_rules={},
@@ -417,11 +528,14 @@ async def test_get_violation_fix_returns_custom_rule_instead_of_predefined_fix(t
     )
     fix_proposal = "With a duplicate test names add a running index index in the test name with three digits."
     config = SimpleNamespace(
-        user_rules={"DUP01": Rule(rule_id="DUP01", instruction="Some instruction")},
+        user_rules={
+            "DUP01": Rule(rule_id="DUP01", instruction="Some instruction", name="duplicated-test-case")
+        },
         predefined_fixes={
             "DUP01": Rule(
                 rule_id="DUP01",
                 instruction=fix_proposal,
+                name="duplicated-test-cases",
             )
         },
         robocop_rules={},
@@ -442,3 +556,17 @@ def test_get_user_rule_fixes_populates_rules():
     config = {"doc01": "Add docs", "ARG05": "Update arguments", "violation_count": 10}
     result = _get_user_rule_fixes(config)
     assert set(result.keys()) == {"DOC01", "ARG05"}
+
+
+def test_get_robocop_rules_returns_rule_mapping():
+    rules = _get_robocop_rules()
+    assert isinstance(rules, dict)
+    assert rules
+    for rule_id, rule in rules.items():
+        if rule_id == "DOC01":
+            assert rule.instruction.startswith("\nKeyword without documentation.")
+            assert rule.name == "missing-doc-keyword"
+        assert isinstance(rule, Rule)
+        assert rule.rule_id == rule_id
+        assert isinstance(rule.instruction, str)
+        assert isinstance(rule.name, str)

@@ -34,6 +34,7 @@ logger = logging.getLogger("robocop-mcp")
 class Rule:
     rule_id: str
     instruction: str
+    name: str
 
 
 @dataclass
@@ -49,14 +50,32 @@ class Config:
     robocop_toml: Path | None = None
 
 
+def _get_robocop_rule_name(rule_id: str) -> str:
+    rule = ROBOCOP_RULES.get(rule_id)
+    if rule:
+        return rule.name
+    return rule_id.lower()
+
+
+def _get_rule_id_by_name_or_id(rule_name: str) -> str | None:
+    for rule in ROBOCOP_RULES.values():
+        if rule.name == rule_name:
+            return rule.rule_id
+        if rule.rule_id.lower() == rule_name.lower():
+            return rule.rule_id
+    return None
+
+
 def _get_user_rule_fixes(config: dict) -> dict[str, Rule]:
     rules: dict[str, Rule] = {}
     if not config:
         return rules
     for key, value in config.items():
-        rule = key.upper()
-        if rule in ROBOCOP_RULES:
-            rules[rule] = Rule(rule, value)
+        rule_id = _get_rule_id_by_name_or_id(key)
+        if rule_id is None:
+            continue
+        name = _get_robocop_rule_name(rule_id)
+        rules[rule_id] = Rule(rule_id, value, name)
     return rules
 
 
@@ -81,7 +100,17 @@ def _get_rule_priority(config: dict, pyproject_toml: Path) -> list[str]:
     if isinstance(rule_priority, str):
         logger.info("rule_priority in %s is string, converting to list", pyproject_toml)
         rule_priority = [rule_priority]
-    return rule_priority
+    rule_priority = [_get_rule_id_by_name_or_id(rule) for rule in rule_priority]
+    return [rule for rule in rule_priority if rule is not None]
+
+
+def _get_rule_ignore(config: dict, pyproject_toml: Path) -> list[str]:
+    rule_ignore = config.get("ignore", [])
+    if isinstance(rule_ignore, str):
+        logger.info("ignore in %s is string, converting to list", pyproject_toml)
+        rule_ignore = [rule_ignore]
+    rule_ignore = [_get_rule_id_by_name_or_id(rule) for rule in rule_ignore]
+    return [rule for rule in rule_ignore if rule is not None]
 
 
 def _robocop_configured_in_toml(data: dict, pyproject_toml: Path, robocop_toml: Path | None) -> bool:
@@ -126,7 +155,7 @@ def _get_robocop_rules() -> dict[str, Rule]:
         RuleFilter.ALL,
         default_config.linter.target_version,  # type: ignore
     )
-    return {rule.rule_id: Rule(rule.rule_id, rule.docs) for rule in rules}
+    return {rule.rule_id: Rule(rule.rule_id, rule.docs, rule.name) for rule in rules}
 
 
 def _get_predefined_fixes() -> dict[str, Rule]:
@@ -137,7 +166,8 @@ def _get_predefined_fixes() -> dict[str, Rule]:
             continue
         with rule_file.open("r", encoding="utf-8") as file:
             instruction = file.read().strip()
-        rules[rule_id] = Rule(rule_id, instruction)
+        name = _get_robocop_rule_name(rule_id)
+        rules[rule_id] = Rule(rule_id, instruction, name)
     return rules
 
 
@@ -158,7 +188,7 @@ def get_config() -> Config:
         count = _get_violation_count(robocop_mcp, pyproject_toml)
         rule_priority = _get_rule_priority(robocop_mcp, pyproject_toml)
         robocop_configured = _robocop_configured_in_toml(data, pyproject_toml, robocop_toml)
-        ignore = robocop_mcp.get("ignore", [])
+        ignore = _get_rule_ignore(robocop_mcp, pyproject_toml)
     else:
         logger.info("No pyproject.toml file found, using default configuration.")
         user_rules = {}

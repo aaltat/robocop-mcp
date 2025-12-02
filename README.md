@@ -99,13 +99,24 @@ Rule - ARG01 [W]: unused-argument: Keyword argument '{name}' is not used (enable
 ```
 Then rule id is the `ARG01`.
 
-And example if user wants to prioritize the `ARG01` and `ARG02` to be fixed first, then `rule_priority` would look like this.
+And example if user wants to prioritize the `ARG01` and `ARG02` to be fixed first, then
+`rule_priority` would look like this.
 
 ```toml
 [tool.robocop_mcp]
 rule_priority = [
     "ARG01",
     "ARG02"
+]
+```
+
+It is also possible to define rule priority by rule name. Example if there is need to
+`ARG01` and `ARG02` rules by name, then `rule_priorit` would look like:
+```toml
+[tool.robocop_mcp]
+rule_priority = [
+    "unused-argument",
+    "argument-overwritten-before-usage"
 ]
 ```
 
@@ -147,6 +158,15 @@ should have:
 [tool.robocop_mcp]
 ARG01 = "my_rules/ARG01.md"
 ```
+
+It is also possible to define custom fic proposals by rule name.
+Example to provide custom fix proposal for `ARG01` by name, then
+toml file would look like:
+```toml
+[tool.robocop_mcp]
+unused-argument = "my_rules/unused-argument.md"
+
+```
 ## Ignore rules
 The recommended way to ignore rules is to ignore rules in the
 robocop tools section in the `pyproject.toml`. In that case
@@ -161,6 +181,17 @@ should have:
 ```toml
 [tool.robocop_mcp]
 ignore = ["DOC02", "DOC03", "COM04"]
+```
+It is also possible to to ignore rules by rule name. If same rules
+as in above would need to ignored, then ignore list would look like:
+
+```toml
+[tool.robocop_mcp]
+ignore = [
+    'missing-doc-test-case',
+    'missing-doc-suite',
+    'ignored-data'
+]
 ```
 
 ## Support separate robocop configuration file

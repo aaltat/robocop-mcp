@@ -28,6 +28,28 @@ language = ["en"]
 
 """
 
+TOML_FILE_RULE_NAME_AS_FILE = """
+[tool.robocop_mcp]
+missing-doc-test-case = REPLACE_ME
+violation_count = 5
+rule_priority = ["DOC02"]
+
+[tool.robocop]
+language = ["en"]
+
+"""
+
+TOML_FILE_RULE_NAME_ALL_AS_FILE = """
+[tool.robocop_mcp]
+missing-doc-test-case = REPLACE_ME
+violation_count = 5
+rule_priority = ["missing-doc-test-case"]
+
+[tool.robocop]
+language = ["en"]
+
+"""
+
 TEST_2 = """
 *** Test Cases ***
 Example Test 1
