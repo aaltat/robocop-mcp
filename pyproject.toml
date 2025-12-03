@@ -54,14 +54,14 @@ allow_zero_version = true
 
 [dependency-groups]
 dev = [
-    "approvaltests>=15.3.2",
+    "approvaltests>=16.1.0",
     "coverage>=7.11.3",
     "invoke>=2.2.1",
     "mypy>=1.18.2",
     "pytest>=9.0.1",
     "pytest-approvaltests>=0.2.4",
     "pytest-asyncio>=1.3.0",
-    "ruff>=0.14.6",
+    "ruff>=0.14.7",
 ]
 
 [tool.ruff]
