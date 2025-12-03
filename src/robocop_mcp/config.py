@@ -48,6 +48,7 @@ class Config:
     rule_ignore: list[str]
     robocop_configured: bool = False
     robocop_toml: Path | None = None
+    robocop_reruns: int = 10
 
 
 def _get_robocop_rule_name(rule_id: str) -> str:
@@ -171,6 +172,20 @@ def _get_predefined_fixes() -> dict[str, Rule]:
     return rules
 
 
+def _get_reruns(config: dict) -> int:
+    reruns = config.get("reruns", 10)
+    if isinstance(reruns, str):
+        try:
+            reruns = int(reruns)
+        except ValueError:
+            logger.warning(
+                "Invalid reruns value '%s' in, using default 10",
+                reruns,
+            )
+            reruns = 10
+    return reruns
+
+
 ROBOCOP_RULES = _get_robocop_rules()
 
 
@@ -189,6 +204,7 @@ def get_config() -> Config:
         rule_priority = _get_rule_priority(robocop_mcp, pyproject_toml)
         robocop_configured = _robocop_configured_in_toml(data, pyproject_toml, robocop_toml)
         ignore = _get_rule_ignore(robocop_mcp, pyproject_toml)
+        reruns = _get_reruns(robocop_mcp)
     else:
         logger.info("No pyproject.toml file found, using default configuration.")
         user_rules = {}
@@ -196,6 +212,7 @@ def get_config() -> Config:
         rule_priority = []
         robocop_configured = False
         ignore = []
+        reruns = 10
     return Config(
         pyproject_toml,
         user_rules,
@@ -206,6 +223,7 @@ def get_config() -> Config:
         ignore,
         robocop_configured,
         robocop_toml,
+        reruns,
     )
 
 

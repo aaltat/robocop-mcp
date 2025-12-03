@@ -220,3 +220,14 @@ variable. Example `mcp.json`:
     }
 }
 ```
+
+## Robocop reruns
+
+It is possible to configure how `robocop format --reruns` command line argument
+is set. This is controlled in the `pyproject.toml` file by `reruns` (int) setting.
+By default value is set to ten, but the set it to two add the following to
+`pyproject.toml` file:
+```toml
+[tool.robocop]
+reruns = 2
+```
