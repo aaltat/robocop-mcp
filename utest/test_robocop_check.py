@@ -2,6 +2,7 @@ import pytest
 from approvaltests.approvals import verify
 from types import SimpleNamespace
 
+import src.robocop_mcp.config as config_module
 from src.robocop_mcp.config import (
     Config,
     _get_rule_ignore,
@@ -10,6 +11,7 @@ from src.robocop_mcp.config import (
     _get_robocop_rules,
     _get_user_rule_fixes,
     _get_robocop_rule_name,
+    _get_predefined_fixes,
 )
 from src.robocop_mcp.mcp_check import Violation, get_violation_fix, run_robocop
 from src.robocop_mcp.server import (
@@ -623,3 +625,16 @@ async def test_get_violation_fix_reads_predefined_instruction_file(tmp_path):
     result = get_violation_fix(violation, config)
 
     assert result == "Predefined file instruction."
+
+
+def test_get_predefined_fixes_reads_rule_file(tmp_path, monkeypatch):
+    rule_file = tmp_path / "UNKNOWN_RULE.md"
+    rule_file.write_text("Instruction text.\n")
+    monkeypatch.setattr(config_module, "get_rules_files", lambda: [rule_file])
+
+    result = _get_predefined_fixes()
+    assert isinstance(result, dict)
+    assert "UNKNOWN" in result
+    assert result["UNKNOWN"].rule_id == "UNKNOWN"
+    assert result["UNKNOWN"].instruction == "Instruction text."
+    assert result["UNKNOWN"].name == "unknown"

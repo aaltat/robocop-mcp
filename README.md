@@ -231,3 +231,14 @@ By default value is set to ten, but the set it to two add the following to
 [tool.robocop]
 reruns = 2
 ```
+
+# Contributing fix instructions for rule
+
+Users can contribute their instructions to for rule fixes in the repository. This
+is explained in the
+[CONTRIBUTING.md](https://github.com/aaltat/robocop-mcp/blob/main/CONTRIBUTING.md)
+file. If there is not fix, either from robocop-mcp or by user defined fixes, then
+`robocop` documentation is used as fix instruction to LLM. User can always write
+their own fix explanation in the prompt, but if that is not one off, then it is
+easier to define user defined rule fix in a file or contribute a fix to the
+robocop-mcp project.

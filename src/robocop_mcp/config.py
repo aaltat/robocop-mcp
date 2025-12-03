@@ -162,11 +162,12 @@ def _get_robocop_rules() -> dict[str, Rule]:
 def _get_predefined_fixes() -> dict[str, Rule]:
     rules = {}
     for rule_file in get_rules_files():
-        rule_id = rule_file.stem.upper()
-        if rule_id == "README":
+        file_name = rule_file.stem.upper()
+        if file_name == "README":
             continue
         with rule_file.open("r", encoding="utf-8") as file:
             instruction = file.read().strip()
+        rule_id = file_name.split("_")[0] if "_" in file_name else file_name
         name = _get_robocop_rule_name(rule_id)
         rules[rule_id] = Rule(rule_id, instruction, name)
     return rules
