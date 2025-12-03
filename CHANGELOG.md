@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.7.0 (2025-12-03)
+
+### Build System
+
+- **deps**: Bump approvaltests from 15.3.2 to 16.1.0
+  ([`fe55309`](https://github.com/aaltat/robocop-mcp/commit/fe5530975fbd73be8a6e41b22a40164c7143f995))
+
+- **deps**: Bump ruff from 0.14.6 to 0.14.7
+  ([`e4f73b6`](https://github.com/aaltat/robocop-mcp/commit/e4f73b663d60c09b0700565db0cfd8c167226d52))
+
+### Chores
+
+- Bund dev deps
+  ([`df1bfe5`](https://github.com/aaltat/robocop-mcp/commit/df1bfe5efffa5731b412886f29ef7c2acd614583))
+
+### Features
+
+- Change rule filename format
+  ([`411cbac`](https://github.com/aaltat/robocop-mcp/commit/411cbace07df979f826cb7058cec9a209fef279f))
+
+- Make robocop reruns configurable
+  ([`a835718`](https://github.com/aaltat/robocop-mcp/commit/a83571866d77b1472669c2512dcb1d9d8a2171a4))
+
+
 ## v1.6.2 (2025-12-02)
 
 ### Bug Fixes
