@@ -10,6 +10,7 @@ language = ["en"]
 [tool.robocop_mcp]
 DOC02 = "Missing documentation"
 violation_count = 5
+reruns = 2
 """
 
 ROBOCOP_TOML_FILE = """

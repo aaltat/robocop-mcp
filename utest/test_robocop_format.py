@@ -36,6 +36,54 @@ async def test_run_robocop_format_with_robocop_config_file(tmp_path, monkeypatch
         # Assert format_files was called with correct arguments
         mock_format_files.assert_called_once()
         mock_format_files.assert_called_once_with(
+            sources=[robot_file], configuration_file=robocop_toml_file, reruns=2
+        )
+        assert "sample.robot" in result or result is not None
+
+
+@pytest.mark.asyncio
+async def test_run_robocop_format_with_reruns_as_string(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    toml_text = TOML_FILE.replace("reruns = 2", 'reruns = "2"')
+    toml_file.write_text(toml_text)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robocop_toml_file = tmp_path / "robocop.toml"
+    robocop_toml_file.write_text(ROBOCOP_TOML_FILE)
+    monkeypatch.setenv("ROBOCOPMCP_ROBOCOP_CONFIG_FILE", str(robocop_toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+
+    with patch("src.robocop_mcp.mcp_format.format_files") as mock_format_files:
+        mock_format_files.return_value = None
+        result = await run_robocop_format(robot_file)
+
+        # Assert format_files was called with correct arguments
+        mock_format_files.assert_called_once()
+        mock_format_files.assert_called_once_with(
+            sources=[robot_file], configuration_file=robocop_toml_file, reruns=2
+        )
+        assert "sample.robot" in result or result is not None
+
+
+@pytest.mark.asyncio
+async def test_run_robocop_format_with_reruns_bad(tmp_path, monkeypatch):
+    toml_file = tmp_path / "pyproject.toml"
+    toml_text = TOML_FILE.replace("reruns = 2", 'reruns = "bad_value"')
+    toml_file.write_text(toml_text)
+    monkeypatch.setenv("ROBOCOPMCP_CONFIG_FILE", str(toml_file))
+    robocop_toml_file = tmp_path / "robocop.toml"
+    robocop_toml_file.write_text(ROBOCOP_TOML_FILE)
+    monkeypatch.setenv("ROBOCOPMCP_ROBOCOP_CONFIG_FILE", str(robocop_toml_file))
+    robot_file = tmp_path / "sample.robot"
+    robot_file.write_text(TEST_1)
+
+    with patch("src.robocop_mcp.mcp_format.format_files") as mock_format_files:
+        mock_format_files.return_value = None
+        result = await run_robocop_format(robot_file)
+
+        # Assert format_files was called with correct arguments
+        mock_format_files.assert_called_once()
+        mock_format_files.assert_called_once_with(
             sources=[robot_file], configuration_file=robocop_toml_file, reruns=10
         )
         assert "sample.robot" in result or result is not None
