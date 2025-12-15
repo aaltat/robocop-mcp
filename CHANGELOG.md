@@ -2,6 +2,49 @@
 
 <!-- version list -->
 
+## v1.8.0 (2025-12-15)
+
+### Bug Fixes
+
+- Use robocop 7.0
+  ([`870f3b1`](https://github.com/aaltat/robocop-mcp/commit/870f3b1e0f281c4dda399383882a4e2ffd3a130f))
+
+### Build System
+
+- **deps**: Bump approvaltests from 16.1.0 to 16.2.0
+  ([`85f2e2d`](https://github.com/aaltat/robocop-mcp/commit/85f2e2db76835d99cb3c10c6be8ce5b09b889e08))
+
+- **deps**: Bump coverage from 7.12.0 to 7.13.0
+  ([`79c40c4`](https://github.com/aaltat/robocop-mcp/commit/79c40c4ba31085d5b56ccd0655962f2980513e8a))
+
+- **deps**: Bump pytest from 9.0.1 to 9.0.2
+  ([`e972478`](https://github.com/aaltat/robocop-mcp/commit/e97247899c819c1bafec29e3fa29709b357e2abc))
+
+- **deps**: Bump ruff from 0.14.7 to 0.14.8
+  ([`be2cda9`](https://github.com/aaltat/robocop-mcp/commit/be2cda9cbd91614ac558b448cddf7daab357f5a9))
+
+- **deps-dev**: Bump ruff from 0.14.8 to 0.14.9
+  ([`809ff69`](https://github.com/aaltat/robocop-mcp/commit/809ff69a26040b177099687a4ea498bf8af5a704))
+
+### Chores
+
+- More test refactoring
+  ([`50f1160`](https://github.com/aaltat/robocop-mcp/commit/50f1160ee7e36e2a54db4d890c40929a7abbe687))
+
+- Tests refactoring
+  ([`b99b8a5`](https://github.com/aaltat/robocop-mcp/commit/b99b8a52408a91ec4a8b897bf4a6f66aa082294c))
+
+### Features
+
+- Add new rules fix instruxtions
+  ([`b88276d`](https://github.com/aaltat/robocop-mcp/commit/b88276dbcc506951b7db82c81c387722d8f72129))
+
+### Testing
+
+- Lint fixes
+  ([`1cdf622`](https://github.com/aaltat/robocop-mcp/commit/1cdf622b27fad0c8e7c1cde2f5734fb5e76141bb))
+
+
 ## v1.7.0 (2025-12-03)
 
 ### Build System
