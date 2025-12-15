@@ -41,7 +41,7 @@ jobs:
         run: uv run inv utest
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report-${{ matrix.python-version }}
           path: htmlcov/
