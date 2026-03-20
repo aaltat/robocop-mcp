@@ -40,7 +40,7 @@ def _convert_to_violations(result: list[Diagnostic]) -> list[Violation]:
     logger.info("Convert to violations")
     return [
         Violation(
-            file=Path(item.source),
+            file=Path(item.source.path),
             start_line=item.range.start.line,
             end_line=item.range.end.line,
             start_column=item.range.start.character,
