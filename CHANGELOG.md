@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.0.0 (2026-03-20)
+
+### Features
+
+- Support for RoboCop 8.2
+  ([`dc3a130`](https://github.com/aaltat/robocop-mcp/commit/dc3a1303e8edc294e6328d6f6eb12a2c7f33aeda))
+
+
 ## v1.8.0 (2025-12-15)
 
 ### Bug Fixes
