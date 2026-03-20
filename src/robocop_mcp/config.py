@@ -20,9 +20,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import tomli  # tomli is for Python versions < 3.11 move to tomllib when 3.11+ is minimum
-from robocop import config as robocop_config  # type: ignore
-from robocop.linter.rules import RuleFilter, filter_rules_by_category  # type: ignore
-from robocop.linter.runner import RobocopLinter  # type: ignore
+from robocop.config import manager as robocop_config_manager  # type: ignore
+from robocop.config import schema as robocop_config_schema  # type: ignore
+from robocop.linter import rules_list  # type: ignore
+from robocop.runtime.resolver import ConfigResolver  # type: ignore
 
 from .rules import get_rules_files
 
@@ -128,33 +129,17 @@ def _robocop_configured_in_toml(data: dict, pyproject_toml: Path, robocop_toml: 
 
 
 def _get_robocop_rules() -> dict[str, Rule]:
-    linter_config = robocop_config.LinterConfig(  # set to None to not override
-        configure=None,
-        select=None,
-        ignore=None,
-        issue_format=None,
-        threshold=None,
-        custom_rules=None,
-        reports=None,
-        persistent=None,
-        compare=None,
-        exit_zero=None,
-    )
-    overwrite_config = robocop_config.Config(
-        linter=linter_config,
-        formatter=None,
-        file_filters=None,
-        language=None,
-        verbose=None,
+    overwrite_config = robocop_config_schema.RawConfig(
+        silent=None,
         target_version=None,
     )
-    config_manager = robocop_config.ConfigManager(overwrite_config=overwrite_config)
-    runner = RobocopLinter(config_manager)
-    default_config = runner.config_manager.default_config
-    rules = filter_rules_by_category(
-        default_config.linter.rules,  # type: ignore
-        RuleFilter.ALL,
-        default_config.linter.target_version,  # type: ignore
+    config_manager = robocop_config_manager.ConfigManager(overwrite_config=overwrite_config)
+    resolver = ConfigResolver(load_rules=True)
+    resolved_config = resolver.resolve_config(config_manager.default_config)
+
+    filter_category = rules_list.RuleFilter.ALL
+    rules = rules_list.filter_rules_by_category(
+        resolved_config.rules, filter_category, config_manager.default_config.linter.target_version
     )
     return {rule.rule_id: Rule(rule.rule_id, rule.docs, rule.name) for rule in rules}
 
