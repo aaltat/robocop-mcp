@@ -20,12 +20,13 @@ from pathlib import Path
 
 import typer
 from robocop.run import format_files  # type: ignore
+from typing_extensions import Self
 
 from .config import get_config, logger, set_robocop_config_file
 
 
 class Capturing(list):
-    def __enter__(self) -> "Capturing":
+    def __enter__(self) -> Self:
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         sys.stdout = self._stringio_out = StringIO()
